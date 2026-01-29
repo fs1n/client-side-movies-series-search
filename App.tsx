@@ -7,6 +7,7 @@ import MediaCard from './components/MediaCard';
 import { account } from './lib/appwrite';
 import { parseAppwriteError } from './lib/appwriteErrorHandler';
 import AuthModal from './components/AuthModal';
+import { loadUserWatchlist, migrateLocalWatchlist, addToWatchlist, removeFromWatchlist } from './lib/watchlist';
 
 const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,6 +49,7 @@ const App: React.FC = () => {
   });
   const [showWatchlist, setShowWatchlist] = useState(false);
   const [sortOption, setSortOption] = useState('date_desc');
+  const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(false);
   
   // Debounce search
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -69,30 +71,70 @@ const App: React.FC = () => {
     host: 'vidsrc-pro'
   });
 
-  // Check Auth Session
+  // Check Auth Session & Load Watchlist
   useEffect(() => {
     const checkSession = async () => {
       try {
         const session = await account.get();
         setUser(session);
         console.log("Appwrite: Connected as " + session.email);
+        
+        // Load watchlist from Appwrite for authenticated user
+        setIsLoadingWatchlist(true);
+        try {
+          const appwriteWatchlist = await loadUserWatchlist(session.$id);
+          setWatchlist(appwriteWatchlist);
+          
+          // Perform migration if needed
+          const localWatchlist = (() => {
+            try {
+              const saved = localStorage.getItem('csmss-watchlist');
+              return saved ? JSON.parse(saved) : [];
+            } catch {
+              return [];
+            }
+          })();
+          
+          if (localWatchlist.length > 0) {
+            try {
+              await migrateLocalWatchlist(session.$id, localWatchlist);
+              // Reload watchlist after migration
+              const updatedWatchlist = await loadUserWatchlist(session.$id);
+              setWatchlist(updatedWatchlist);
+              // Clear local storage after successful migration
+              localStorage.removeItem('csmss-watchlist');
+              console.log('Watchlist migrated to Appwrite');
+            } catch (migrationError) {
+              console.warn('Migration failed, keeping local watchlist:', migrationError);
+            }
+          }
+        } catch (watchlistError) {
+          console.warn('Failed to load Appwrite watchlist, falling back to local:', watchlistError);
+          // Fall back to local storage if Appwrite fails
+        } finally {
+          setIsLoadingWatchlist(false);
+        }
       } catch (e: any) {
         const error = parseAppwriteError(e);
         // Handle guest user or network errors
         if (error.code === 401) {
             console.log("Appwrite: Guest Session");
+            setIsLoadingWatchlist(false);
         } else {
             console.warn(`Appwrite session check failed: ${error.message}`, error.code);
+            setIsLoadingWatchlist(false);
         }
       }
     };
     checkSession();
   }, []);
 
-  // Persist Watchlist
+  // Persist Watchlist to localStorage only for guests
   useEffect(() => {
-    localStorage.setItem('csmss-watchlist', JSON.stringify(watchlist));
-  }, [watchlist]);
+    if (!user) {
+      localStorage.setItem('csmss-watchlist', JSON.stringify(watchlist));
+    }
+  }, [watchlist, user]);
 
   // Persist Filters
   useEffect(() => {
@@ -199,14 +241,34 @@ const App: React.FC = () => {
   };
 
   const toggleWatchlist = useCallback((item: MediaItem) => {
-    setWatchlist(prev => {
-      const exists = prev.find(i => i.id === item.id);
-      if (exists) {
-        return prev.filter(i => i.id !== item.id);
+    const isInWatchlist = watchlist.some(w => w.id === item.id);
+    
+    if (user) {
+      // Authenticated: sync with Appwrite
+      if (isInWatchlist) {
+        removeFromWatchlist(user.$id, item.id).then((success) => {
+          if (success) {
+            setWatchlist(prev => prev.filter(w => w.id !== item.id));
+          }
+        });
+      } else {
+        addToWatchlist(user.$id, item).then((result) => {
+          if (result) {
+            setWatchlist(prev => [...prev, item]);
+          }
+        });
       }
-      return [...prev, item];
-    });
-  }, []);
+    } else {
+      // Guest: use localStorage
+      setWatchlist(prev => {
+        const exists = prev.find(i => i.id === item.id);
+        if (exists) {
+          return prev.filter(i => i.id !== item.id);
+        }
+        return [...prev, item];
+      });
+    }
+  }, [user, watchlist]);
 
   const handleWatchlistToggle = () => {
     if (!showWatchlist) {
@@ -226,6 +288,9 @@ const App: React.FC = () => {
       await account.deleteSession('current');
       setUser(null);
       setShowUserMenu(false);
+      // Reset watchlist to local storage on logout
+      setWatchlist([]);
+      localStorage.setItem('csmss-watchlist', JSON.stringify([]));
     } catch (e) {
       console.error('Logout failed', e);
     }
@@ -274,7 +339,7 @@ const App: React.FC = () => {
             <div className="bg-primary/20 p-2 rounded-lg group-hover:bg-primary/30 transition-colors">
               <Clapperboard className="w-6 h-6 text-primary" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">CSMSS <span className="text-primary">Modern</span></h1>
+            <h1 className="text-xl font-bold tracking-tight">CSMSS <span className="text-primary">Beta</span></h1>
           </div>
 
           <div className="relative w-full max-w-xl flex items-center gap-2">

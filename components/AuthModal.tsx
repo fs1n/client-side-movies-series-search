@@ -67,7 +67,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
           <p className="text-sm text-subtext">
-            {isLogin ? 'Sign in to access your watchlist and sync your data.' : 'Join CSMSS Modern to track your favorite movies and series.'}
+            {isLogin ? 'Sign in to get access to sync your watchlist across devices.' : 'Join CSMSS to track your favorite movies and series.'}
           </p>
         </div>
 
