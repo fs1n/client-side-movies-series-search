@@ -27,7 +27,7 @@ export const WATCHLIST_PERMISSIONS = {
 
 /**
  * Helper to construct permission array for a specific user
- * Use this if you need explicit user IDs (though $userId is preferred)
+ * Required in Appwrite v16 - use actual user IDs instead of $userId placeholder
  * 
  * Example:
  * const perms = buildUserPermissions("user_123");

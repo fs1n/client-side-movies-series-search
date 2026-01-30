@@ -2,10 +2,11 @@ import { databases, account } from './appwrite';
 import { Query, ID } from 'appwrite';
 import { MediaItem } from '../types';
 import { parseAppwriteError } from './appwriteErrorHandler';
-import { WATCHLIST_PERMISSIONS } from './appwriteRowSecurity';
+import { buildUserPermissions } from './appwriteRowSecurity';
+import { config } from './config';
 
-const DB_ID = 'csmss-prod';
-const COLLECTION_ID = 'watchlist';
+const DB_ID = config.database.databaseId;
+const COLLECTION_ID = config.database.collectionId;
 const MIGRATION_FLAG_KEY = 'watchlist_migrated';
 
 /**
@@ -73,7 +74,7 @@ export const addToWatchlist = async (userId: string, media: MediaItem): Promise<
     }
 
     // The unique index on (userId, mediaId) will reject duplicates automatically
-    // $userId is a special placeholder that Appwrite replaces with the authenticated user's ID
+    // Build permissions with actual user ID for Appwrite v16
     const doc = await databases.createDocument(
       DB_ID,
       COLLECTION_ID,
@@ -86,7 +87,7 @@ export const addToWatchlist = async (userId: string, media: MediaItem): Promise<
         posterPath: media.poster_path || '',
         addedAt: new Date().toISOString()
       },
-      WATCHLIST_PERMISSIONS.ownerOnly
+      buildUserPermissions(userId)
     );
 
     return {

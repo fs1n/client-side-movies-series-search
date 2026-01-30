@@ -1,3 +1,5 @@
+import { Database } from "lucide-react";
+
 /**
  * Helper to get environment variables with support for Vite and standard process.env
  * Throws an error if the variable is not found (no fallback values for security)
@@ -40,5 +42,9 @@ export const config = {
   appwrite: {
     endpoint: getEnvVar('VITE_APPWRITE_ENDPOINT'),
     projectId: getEnvVar('VITE_APPWRITE_PROJECT_ID'),
+  },
+  database: {
+    databaseId: getEnvVar('VITE_APPWRITE_DATABASE_ID'),
+    collectionId: getEnvVar('VITE_APPWRITE_COLLECTION_ID'),
   }
-} as const;
+};

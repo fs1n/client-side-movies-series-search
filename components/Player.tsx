@@ -29,7 +29,9 @@ const Player: React.FC<PlayerProps> = ({ playerState, onClose, onUpdateState }) 
         ? host.urlTemplate(playerState.mediaId, playerState.season, playerState.episode)
         : host.urlTemplate(playerState.mediaId);
       
-      setUrl(newUrl);
+      // Wrap with CORS proxy (path-based)
+      const proxiedUrl = `https://cors.craeckor.ch/${newUrl}`;
+      setUrl(proxiedUrl);
 
       // Clear existing timeout
       if (loadTimeoutRef.current) window.clearTimeout(loadTimeoutRef.current);
