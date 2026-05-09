@@ -73,7 +73,7 @@ if (getCookie('currentEngine') === 'tmdb') {
     async function fetchData() {
         const input = document.getElementById('searchInput').value;
         if (input.trim() === '') {
-            document.getElementById('output').innerHTML = '';
+            loadTrending();
             return;
         }
 
@@ -94,7 +94,12 @@ if (getCookie('currentEngine') === 'tmdb') {
 
             displayResults([...movieData.results, ...tvData.results]);
         } catch (error) {
-            document.getElementById('output').textContent = 'Error fetching data: ' + error.message;
+            const output = document.getElementById('output');
+            output.textContent = '';
+            const err = document.createElement('p');
+            err.className = 'empty-state';
+            err.textContent = 'Something went wrong. Try again.';
+            output.appendChild(err);
         }
     }
 
@@ -129,9 +134,20 @@ if (getCookie('currentEngine') === 'tmdb') {
             `;
             output.appendChild(preview);
         });
+        if (output.children.length === 0) {
+            const msg = document.createElement('p');
+            msg.className = 'empty-state';
+            msg.textContent = 'No results found.';
+            output.appendChild(msg);
+        }
     }
 
     function openIframe(tmdbId, mediaType, title) {
+        const activeImg = document.querySelector('.preview.active img');
+        const activeYear = document.querySelector('.preview.active p:nth-of-type(2)');
+        const poster = activeImg ? activeImg.src : 'assets/image/unavailed.png';
+        const year = activeYear ? activeYear.textContent : '';
+        saveRecent(tmdbId, title, poster, year, mediaType === 'tv' ? 'tv' : 'movie', 'tmdb');
         currentTmdbId = tmdbId;
         isSeries = mediaType === 'tv';
         currentSeason = getCookie(`${currentTmdbId}_season`) || 1;
@@ -277,4 +293,19 @@ if (getCookie('currentEngine') === 'tmdb') {
         setCookie('currentHost', currentHost, 5);
         updateIframe();
     }
+
+    async function loadTrending() {
+        const url = 'https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/trending/all/week?language=en-US';
+        try {
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const data = await res.json();
+            data.results.forEach(item => {
+                if (!item.media_type) item.media_type = item.title ? 'movie' : 'tv';
+            });
+            displayResults(data.results);
+        } catch (e) { /* silent fail */ }
+    }
+
+    loadTrending();
 }

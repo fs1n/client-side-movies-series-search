@@ -37,7 +37,12 @@ if (getCookie('currentEngine') === 'imdb') {
             }
             displayResults(data.d);
         } catch (error) {
-            document.getElementById('output').textContent = 'Error fetching data: ' + error.message;
+            const output = document.getElementById('output');
+            output.textContent = '';
+            const err = document.createElement('p');
+            err.className = 'empty-state';
+            err.textContent = 'Something went wrong. Try again.';
+            output.appendChild(err);
         }
     }
 
@@ -59,9 +64,21 @@ if (getCookie('currentEngine') === 'imdb') {
                 `;
                 output.appendChild(preview);
             });
+        if (output.children.length === 0) {
+            const msg = document.createElement('p');
+            msg.className = 'empty-state';
+            msg.textContent = 'No results found.';
+            output.appendChild(msg);
+        }
     }
 
     function openIframe(imdbId, qid, title) {
+        const activeImg = document.querySelector('.preview.active img');
+        const activeYear = document.querySelector('.preview.active p:nth-of-type(2)');
+        const poster = activeImg ? activeImg.src : 'assets/image/unavailed.png';
+        const year = activeYear ? activeYear.textContent : '';
+        const type = (qid === 'movie' || qid === 'tvMovie' || qid === 'short') ? 'movie' : 'tv';
+        saveRecent(imdbId, title, poster, year, type, 'imdb');
         currentImdbId = imdbId;
         isSeries = qid === 'tvSeries' || qid === 'tvMiniSeries';
         currentSeason = getCookie(`${currentImdbId}_season`) || 1;

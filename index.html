@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie and Series Search</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/jquery.js"></script>
     <script src="assets/js/utils.js"></script>
-    <script src="assets/js/switcher.js"></script>
-    <script src="assets/js/loader.js"></script>
 </head>
 <body>
     <div id="mainContainer">
@@ -16,6 +15,7 @@
             <div id="headerControls">
                 <button id="switchEngineButton" onclick="switchEngine()">Switch to TMDB</button>
                 <input type="text" id="searchInput" placeholder="Enter search term">
+                <button id="themeToggle" title="Toggle theme">☾</button>
             </div>
         </header>
         <main>
@@ -48,11 +48,13 @@
                     </div>
                 </div>
             </div>
+            <div id="recentSection"></div>
+            <p id="sectionLabel"></p>
             <div id="output"></div>
         </main>
         <footer>
             <a href="https://github.com/craeckor/client-side-movies-series-search/tree/beta" target="_blank">
-                <img src="assets/image/github-mark.svg" alt="GitHub" style="width: 24px; height: 24px;">
+                <img src="assets/image/github-mark-white.svg" alt="GitHub" style="width: 24px; height: 24px;">
             </a>
             <p>If you experience issues, try our official version <a href="https://csmss.craeckor.ch/" target="_blank">here</a>. Some functions may not yet be available.</p>
         </footer>
@@ -60,5 +62,122 @@
     <script src="assets/js/imdb.js"></script>
     <script src="assets/js/tmdb.js"></script>
     <script src="assets/js/switcher.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // ── Theme ──────────────────────────────────────────────
+            var saved = getCookie('currentTheme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var theme = saved || (prefersDark ? 'dark' : 'light');
+            $('html').attr('data-theme', theme);
+            $('#themeToggle').text(theme === 'dark' ? '☀' : '☾');
+
+            $('#themeToggle').on('click', function () {
+                var current = $('html').attr('data-theme');
+                var next = current === 'dark' ? 'light' : 'dark';
+                $('html').attr('data-theme', next);
+                setCookie('currentTheme', next, 30);
+                $(this).text(next === 'dark' ? '☀' : '☾');
+            });
+
+            // ── Section label + recently watched + empty state ─────
+            var isTmdb = getCookie('currentEngine') === 'tmdb';
+            if (isTmdb) {
+                $('#sectionLabel').text('Trending this week');
+            } else {
+                var msg = document.createElement('p');
+                msg.className = 'empty-state';
+                msg.textContent = 'Search for a movie or series to get started.';
+                document.getElementById('output').appendChild(msg);
+            }
+            renderRecent();
+
+            // ── Search: autofocus + clear button ───────────────────
+            $('#searchInput').wrap('<div id="searchWrapper"></div>');
+            $('#searchWrapper').append('<button id="clearSearch" title="Clear">×</button>');
+            $('#clearSearch').hide();
+
+            $('#searchInput').focus();
+
+            $('#searchInput').on('input', function () {
+                var hasVal = $(this).val().length > 0;
+                $('#clearSearch').toggle(hasVal);
+                if (isTmdb) {
+                    $('#sectionLabel').text(!hasVal ? 'Trending this week' : '');
+                } else if (hasVal) {
+                    $('#output .empty-state').remove();
+                }
+            });
+
+            $('#clearSearch').on('click', function () {
+                $('#searchInput').val('').focus().trigger('input');
+                if (isTmdb) {
+                    loadTrending();
+                } else {
+                    $('#output').empty();
+                }
+            });
+
+            // ── Card active state ──────────────────────────────────
+            $(document).on('click', '.preview', function () {
+                $('.preview').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // ── Keyboard shortcuts ─────────────────────────────────
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $('#iframeContainer').css('display') !== 'none') {
+                    closeIframe();
+                }
+                if (e.key === 'Enter' && $(document.activeElement).is('#searchInput')) {
+                    $('.preview').first().trigger('click');
+                }
+            });
+
+            // ── Scroll to player on open ───────────────────────────
+            new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    if (m.target.style.display === 'block') {
+                        $('html, body').animate(
+                            { scrollTop: $('#iframeContainer').offset().top - 16 },
+                            280
+                        );
+                    }
+                });
+            }).observe(document.getElementById('iframeContainer'), {
+                attributes: true,
+                attributeFilter: ['style']
+            });
+
+            // ── Loading state ──────────────────────────────────────
+            new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    if (m.type === 'childList') {
+                        if (m.target.children.length === 0 && $('#searchInput').val().trim() !== '') {
+                            $('#output').addClass('loading');
+                        } else {
+                            $('#output').removeClass('loading');
+                        }
+                    }
+                });
+            }).observe(document.getElementById('output'), { childList: true });
+
+            // ── Fullscreen label sync ──────────────────────────────
+            $(document).on('fullscreenchange webkitfullscreenchange mozfullscreenchange', function () {
+                $('#fullscreenButton').text(document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen');
+            });
+
+            // ── Scroll back to results on close ────────────────────
+            $(document).on('click', '#closeButton', function () {
+                setTimeout(function () {
+                    $('html, body').animate(
+                        { scrollTop: $('#output').offset().top - 16 },
+                        280
+                    );
+                }, 50);
+            });
+
+        });
+    </script>
 </body>
 </html>
