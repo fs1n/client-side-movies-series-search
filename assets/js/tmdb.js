@@ -56,6 +56,15 @@ if (getCookie('currentEngine') === 'tmdb') {
     let currentTitle = '';
     let currentHost = getCookie('currentHost') || 'moviesapi';
 
+    let maxSeasons = null;
+    let maxEpisodes = null;
+
+    let searchResults = [];
+    let currentPage = 1;
+    let isLoadingMore = false;
+    let hasMorePages = true;
+    let activeQuery = '';
+
     if (!getCookie('currentHost')) {
         setCookie('currentHost', 'moviesapi', 5); // Set the cookie to 'moviesapi' if it doesn't exist
     }
@@ -64,21 +73,25 @@ if (getCookie('currentEngine') === 'tmdb') {
 
     document.getElementById('searchInput').addEventListener('input', () => {
         clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(fetchData, 1500);
+        currentPage = 1;
+        searchResults = [];
+        debounceTimeout = setTimeout(() => fetchData(1), 1500);
     });
     
     // Call updateHostOptions on page load
     updateHostOptions();
 
-    async function fetchData() {
+    async function fetchData(page) {
         const input = document.getElementById('searchInput').value;
         if (input.trim() === '') {
+            if (page > 1) return;
             loadTrending();
             return;
         }
-
-        const movieUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/movie?query=${input}&include_adult=true&language=en-US&page=1`;
-        const tvUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/tv?query=${input}&include_adult=true&language=en-US&page=1`;
+        activeQuery = input.trim();
+        page = page || 1;
+        const movieUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/movie?query=${input}&include_adult=true&language=en-US&page=${page}`;
+        const tvUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/tv?query=${input}&include_adult=true&language=en-US&page=${page}`;
 
         try {
             const [movieResponse, tvResponse] = await Promise.all([fetch(movieUrl), fetch(tvUrl)]);
@@ -88,11 +101,19 @@ if (getCookie('currentEngine') === 'tmdb') {
             const movieData = await movieResponse.json();
             const tvData = await tvResponse.json();
 
-            // Add media_type to each result
-            movieData.results.forEach(item => item.media_type = 'movie');
-            tvData.results.forEach(item => item.media_type = 'tv');
+            const combined = [...movieData.results, ...tvData.results];
+            combined.forEach(item => item.media_type = item.name ? 'tv' : 'movie');
+            combined.sort((a, b) => b.popularity - a.popularity);
 
-            displayResults([...movieData.results, ...tvData.results]);
+            if (page === 1) {
+                searchResults = combined;
+            } else {
+                searchResults = searchResults.concat(combined);
+            }
+            currentPage = page;
+            hasMorePages = movieData.total_pages > page || tvData.total_pages > page;
+
+            displayResults(searchResults, page > 1);
         } catch (error) {
             const output = document.getElementById('output');
             output.textContent = '';
@@ -103,26 +124,32 @@ if (getCookie('currentEngine') === 'tmdb') {
         }
     }
 
-    function displayResults(results) {
+    function displayResults(results, append) {
         const output = document.getElementById('output');
-        output.innerHTML = '';
+        if (!append) output.innerHTML = '';
 
-        // Sort results by popularity (higher popularity first)
-        results.sort((a, b) => b.popularity - a.popularity);
+        document.getElementById('loadMoreBtn')?.remove();
 
         results.forEach(item => {
+            if (append && document.querySelector('.preview[data-id="' + item.id + '"]')) return;
+
             const preview = document.createElement('div');
             preview.className = 'preview';
-            preview.onclick = () => openIframe(item.id, item.media_type, item.title || item.name);
+            preview.dataset.id = item.id;
+            preview.onclick = () => {
+                const p = item.poster_path ? 'https://image.tmdb.org/t/p/w200' + item.poster_path : 'assets/image/unavailed.png';
+                const y = (item.release_date || item.first_air_date || '').split('-')[0];
+                const t = item.media_type === 'tv' ? 'tv' : 'movie';
+                saveRecent(item.id, item.title || item.name, p, y, t, 'tmdb');
+                openIframe(item.id, item.media_type, item.title || item.name);
+            };
 
-            // Truncate the overview to 15 words
             let overview = item.overview || 'No description available';
             const words = overview.split(' ');
             if (words.length > 15) {
                 overview = words.slice(0, 15).join(' ') + '...';
             }
 
-            // Extract the year from the release date or first air date
             const releaseYear = (item.release_date || item.first_air_date || '').split('-')[0];
 
             preview.innerHTML = `
@@ -134,12 +161,45 @@ if (getCookie('currentEngine') === 'tmdb') {
             `;
             output.appendChild(preview);
         });
-        if (output.children.length === 0) {
-            const msg = document.createElement('p');
-            msg.className = 'empty-state';
-            msg.textContent = 'No results found.';
-            output.appendChild(msg);
+
+        if (!append) {
+            if (output.children.length === 0) {
+                const msg = document.createElement('p');
+                msg.className = 'empty-state';
+                msg.textContent = 'No results found.';
+                output.appendChild(msg);
+            } else if (hasMorePages) {
+                const btn = document.createElement('button');
+                btn.id = 'loadMoreBtn';
+                btn.textContent = 'Load More';
+                btn.onclick = loadMore;
+                output.parentNode.insertBefore(btn, output.nextSibling);
+            }
         }
+
+        if (append && hasMorePages) {
+            const btn = document.createElement('button');
+            btn.id = 'loadMoreBtn';
+            btn.textContent = 'Load More';
+            btn.onclick = loadMore;
+            output.parentNode.insertBefore(btn, output.nextSibling);
+        }
+    }
+
+    function loadMore() {
+        if (!activeQuery) return;
+        if (isLoadingMore || !hasMorePages) return;
+        isLoadingMore = true;
+        fetchData(currentPage + 1).then(() => {
+            isLoadingMore = false;
+        });
+    }
+
+    function updateStepControls() {
+        const sv = document.getElementById('seasonValue');
+        const ev = document.getElementById('episodeValue');
+        if (sv) sv.value = currentSeason;
+        if (ev) ev.value = currentEpisode;
     }
 
     function openIframe(tmdbId, mediaType, title) {
@@ -147,14 +207,25 @@ if (getCookie('currentEngine') === 'tmdb') {
         const activeYear = document.querySelector('.preview.active p:nth-of-type(2)');
         const poster = activeImg ? activeImg.src : 'assets/image/unavailed.png';
         const year = activeYear ? activeYear.textContent : '';
-        saveRecent(tmdbId, title, poster, year, mediaType === 'tv' ? 'tv' : 'movie', 'tmdb');
         currentTmdbId = tmdbId;
         isSeries = mediaType === 'tv';
-        currentSeason = getCookie(`${currentTmdbId}_season`) || 1;
-        currentEpisode = getCookie(`${currentTmdbId}_episode`) || 1;
+        currentSeason = parseInt(getCookie(`${currentTmdbId}_season`), 10) || 1;
+        currentEpisode = parseInt(getCookie(`${currentTmdbId}_episode`), 10) || 1;
         currentTitle = title;
+        maxSeasons = null;
+        maxEpisodes = null;
+        if (isSeries) {
+            fetch(`https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/tv/${currentTmdbId}?language=en-US`)
+                .then(r => r.json())
+                .then(d => { maxSeasons = d.number_of_seasons || null; })
+                .catch(() => {});
+            fetch(`https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)
+                .then(r => r.json())
+                .then(d => { maxEpisodes = (d.episodes && d.episodes.length) || null; })
+                .catch(() => {});
+        }
         document.getElementById('iframeContainer').style.display = 'block';
-        updateIframe(); // Ensure the iframe is updated immediately
+        updateIframe();
     }
 
     async function updateIframe() {
@@ -196,10 +267,9 @@ if (getCookie('currentEngine') === 'tmdb') {
                 src = `https://moviee.tv/embed/tv/${currentTmdbId}?season=${currentSeason}&episode=${currentEpisode}`;
             }
             infoText.textContent = `${currentTitle} - Season ${currentSeason}, Episode ${currentEpisode}`;
-            document.getElementById('seasonBackButton').style.display = 'inline';
-            document.getElementById('seasonForwardButton').style.display = 'inline';
-            document.getElementById('episodeBackButton').style.display = 'inline';
-            document.getElementById('episodeForwardButton').style.display = 'inline';
+            document.getElementById('seasonControl').style.display = 'flex';
+            document.getElementById('episodeControl').style.display = 'flex';
+            updateStepControls();
         } else {
             if (currentHost === 'vidsrc-pro') {
                 src = `https://vidsrc.pro/embed/movie/${currentTmdbId}`;
@@ -235,12 +305,10 @@ if (getCookie('currentEngine') === 'tmdb') {
                 src = `https://moviee.tv/embed/movie/${currentTmdbId}`;
             }
             infoText.textContent = currentTitle;
-            document.getElementById('seasonBackButton').style.display = 'none';
-            document.getElementById('seasonForwardButton').style.display = 'none';
-            document.getElementById('episodeBackButton').style.display = 'none';
-            document.getElementById('episodeForwardButton').style.display = 'none';
+            document.getElementById('seasonControl').style.display = 'none';
+            document.getElementById('episodeControl').style.display = 'none';
         }
-        movieIframe.src = src; // Set the src attribute to load the iframe content
+        movieIframe.src = src;
     }
 
     async function checkVipAvailability(url) {
@@ -275,16 +343,27 @@ if (getCookie('currentEngine') === 'tmdb') {
     }
 
     function changeSeason(change) {
-        currentSeason = Math.max(1, currentSeason + change);
-        currentEpisode = 1; // Reset episode to 1 when changing season
+        let next = Math.max(1, parseInt(currentSeason, 10) + change);
+        if (maxSeasons !== null) next = Math.min(next, maxSeasons);
+        currentSeason = next;
+        currentEpisode = 1;
+        maxEpisodes = null;
+        fetch(`https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)
+            .then(r => r.json())
+            .then(d => { maxEpisodes = (d.episodes && d.episodes.length) || null; })
+            .catch(() => {});
         setCookie(`${currentTmdbId}_season`, currentSeason, 5);
         setCookie(`${currentTmdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
         updateIframe();
     }
 
     function changeEpisode(change) {
-        currentEpisode = Math.max(1, currentEpisode + change);
+        let next = Math.max(1, parseInt(currentEpisode, 10) + change);
+        if (maxEpisodes !== null) next = Math.min(next, maxEpisodes);
+        currentEpisode = next;
         setCookie(`${currentTmdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
         updateIframe();
     }
 
@@ -303,9 +382,56 @@ if (getCookie('currentEngine') === 'tmdb') {
             data.results.forEach(item => {
                 if (!item.media_type) item.media_type = item.title ? 'movie' : 'tv';
             });
+            searchResults = data.results;
+            currentPage = 1;
+            hasMorePages = false;
+            activeQuery = '';
             displayResults(data.results);
         } catch (e) { /* silent fail */ }
     }
+
+    window.setTmdbSeasonEpisode = function(season, episode) {
+        currentSeason = parseInt(season, 10) || 1;
+        currentEpisode = parseInt(episode, 10) || 1;
+        setCookie(`${currentTmdbId}_season`, currentSeason, 5);
+        setCookie(`${currentTmdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
+        updateIframe();
+    };
+
+    window.setSeasonDirect = function(val) {
+        let s = Math.max(1, val);
+        if (maxSeasons !== null) s = Math.min(s, maxSeasons);
+        currentSeason = s;
+        currentEpisode = 1;
+        maxEpisodes = null;
+        fetch(`https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)
+            .then(r => r.json())
+            .then(d => { maxEpisodes = (d.episodes && d.episodes.length) || null; })
+            .catch(() => {});
+        setCookie(`${currentTmdbId}_season`, currentSeason, 5);
+        setCookie(`${currentTmdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
+        updateIframe();
+    };
+
+    window.setEpisodeDirect = function(val) {
+        let e = Math.max(1, val);
+        if (maxEpisodes !== null) e = Math.min(e, maxEpisodes);
+        currentEpisode = e;
+        setCookie(`${currentTmdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
+        updateIframe();
+    };
+
+    window.getTmdbSeriesState = function() {
+        return { isSeries, currentTmdbId, currentTitle, currentSeason, currentEpisode };
+    };
+
+    window.loadMoreResults = loadMore;
+    window.openTmdbIframe = openIframe;
+
+    window.hasActiveSearch = function() { return !!activeQuery; };
 
     loadTrending();
 }

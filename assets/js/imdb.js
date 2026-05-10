@@ -54,7 +54,13 @@ if (getCookie('currentEngine') === 'imdb') {
             .forEach(item => {
                 const preview = document.createElement('div');
                 preview.className = 'preview';
-                preview.onclick = () => openIframe(item.id, item.qid, item.l);
+                preview.onclick = () => {
+                    const p = item.i ? item.i.imageUrl : 'assets/image/unavailed.png';
+                    const y = item.y ? String(item.y) : '';
+                    const t = (item.qid === 'movie' || item.qid === 'tvMovie' || item.qid === 'short') ? 'movie' : 'tv';
+                    saveRecent(item.id, item.l, p, y, t, 'imdb');
+                    openIframe(item.id, item.qid, item.l);
+                };
                 preview.innerHTML = `
                     <img src="${item.i ? item.i.imageUrl : 'assets/image/unavailed.png'}" alt="${item.l}">
                     <h3>${item.l}</h3>
@@ -72,20 +78,26 @@ if (getCookie('currentEngine') === 'imdb') {
         }
     }
 
+    function updateStepControls() {
+        const sv = document.getElementById('seasonValue');
+        const ev = document.getElementById('episodeValue');
+        if (sv) sv.value = currentSeason;
+        if (ev) ev.value = currentEpisode;
+    }
+
     function openIframe(imdbId, qid, title) {
         const activeImg = document.querySelector('.preview.active img');
         const activeYear = document.querySelector('.preview.active p:nth-of-type(2)');
         const poster = activeImg ? activeImg.src : 'assets/image/unavailed.png';
         const year = activeYear ? activeYear.textContent : '';
         const type = (qid === 'movie' || qid === 'tvMovie' || qid === 'short') ? 'movie' : 'tv';
-        saveRecent(imdbId, title, poster, year, type, 'imdb');
         currentImdbId = imdbId;
         isSeries = qid === 'tvSeries' || qid === 'tvMiniSeries';
-        currentSeason = getCookie(`${currentImdbId}_season`) || 1;
-        currentEpisode = getCookie(`${currentImdbId}_episode`) || 1;
+        currentSeason = parseInt(getCookie(`${currentImdbId}_season`), 10) || 1;
+        currentEpisode = parseInt(getCookie(`${currentImdbId}_episode`), 10) || 1;
         currentTitle = title;
         document.getElementById('iframeContainer').style.display = 'block';
-        updateIframe(); // Ensure the iframe is updated immediately
+        updateIframe();
     }
 
     async function updateIframe() {
@@ -123,10 +135,9 @@ if (getCookie('currentEngine') === 'imdb') {
                 src = `https://player.vidsrc.nl/embed/tv/${currentImdbId}/${currentSeason}/${currentEpisode}`;
             }
             infoText.textContent = `${currentTitle} - Season ${currentSeason}, Episode ${currentEpisode}`;
-            document.getElementById('seasonBackButton').style.display = 'inline';
-            document.getElementById('seasonForwardButton').style.display = 'inline';
-            document.getElementById('episodeBackButton').style.display = 'inline';
-            document.getElementById('episodeForwardButton').style.display = 'inline';
+            document.getElementById('seasonControl').style.display = 'flex';
+            document.getElementById('episodeControl').style.display = 'flex';
+            updateStepControls();
         } else {
             if (currentHost === 'vidsrc-pro') {
                 src = `https://vidsrc.pro/embed/movie/${currentImdbId}`;
@@ -158,12 +169,10 @@ if (getCookie('currentEngine') === 'imdb') {
                 src = `https://player.vidsrc.nl/embed/movie/${currentImdbId}`;
             }
             infoText.textContent = currentTitle;
-            document.getElementById('seasonBackButton').style.display = 'none';
-            document.getElementById('seasonForwardButton').style.display = 'none';
-            document.getElementById('episodeBackButton').style.display = 'none';
-            document.getElementById('episodeForwardButton').style.display = 'none';
+            document.getElementById('seasonControl').style.display = 'none';
+            document.getElementById('episodeControl').style.display = 'none';
         }
-        movieIframe.src = src; // Set the src attribute to load the iframe content
+        movieIframe.src = src;
     }
 
     async function checkVipAvailability(url) {
@@ -198,16 +207,18 @@ if (getCookie('currentEngine') === 'imdb') {
     }
 
     function changeSeason(change) {
-        currentSeason = Math.max(1, currentSeason + change);
-        currentEpisode = 1; // Reset episode to 1 when changing season
+        currentSeason = Math.max(1, parseInt(currentSeason, 10) + change);
+        currentEpisode = 1;
         setCookie(`${currentImdbId}_season`, currentSeason, 5);
         setCookie(`${currentImdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
         updateIframe();
     }
-    
+
     function changeEpisode(change) {
-        currentEpisode = Math.max(1, currentEpisode + change);
+        currentEpisode = Math.max(1, parseInt(currentEpisode, 10) + change);
         setCookie(`${currentImdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
         updateIframe();
     }
 
@@ -219,4 +230,35 @@ if (getCookie('currentEngine') === 'imdb') {
         setCookie('currentHost_imdb', currentHost, 5);
         updateIframe();
     }
+
+    window.setImdbSeasonEpisode = function(season, episode) {
+        currentSeason = parseInt(season, 10) || 1;
+        currentEpisode = parseInt(episode, 10) || 1;
+        setCookie(`${currentImdbId}_season`, currentSeason, 5);
+        setCookie(`${currentImdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
+        updateIframe();
+    };
+
+    window.setSeasonDirect = function(val) {
+        currentSeason = Math.max(1, val);
+        currentEpisode = 1;
+        setCookie(`${currentImdbId}_season`, currentSeason, 5);
+        setCookie(`${currentImdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
+        updateIframe();
+    };
+
+    window.setEpisodeDirect = function(val) {
+        currentEpisode = Math.max(1, val);
+        setCookie(`${currentImdbId}_episode`, currentEpisode, 5);
+        updateStepControls();
+        updateIframe();
+    };
+
+    window.getImdbSeriesState = function() {
+        return { isSeries, currentImdbId, currentTitle, currentSeason, currentEpisode };
+    };
+
+    window.openImdbIframe = openIframe;
 }

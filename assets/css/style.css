@@ -313,47 +313,6 @@ button:focus-visible, select:focus-visible {
     margin: 0;
 }
 
-/* ── Recently watched ── */
-
-#recentSection {
-    margin-top: 24px;
-}
-
-#recentLabel {
-    font-size: 0.82em;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin: 0 0 10px;
-}
-
-#recentRow {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-}
-
-#recentRow .preview {
-    width: 110px;
-    flex-shrink: 0;
-    animation: none;
-}
-
-#recentRow .preview img {
-    height: 160px;
-}
-
-.recent-meta {
-    font-size: 0.72em;
-    color: var(--muted);
-    margin: 0 8px 8px;
-    display: block !important;
-}
-
 /* ── Footer ── */
 
 footer {
@@ -439,5 +398,256 @@ footer a:hover img {
 
     #rightControls button {
         flex: 1 1 calc(50% - 6px);
+    }
+}
+
+/* ── Episode Guide Overlay ── */
+
+#episodeGuideOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+#episodeGuideOverlay.open {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#episodeGuideModal {
+    background: var(--surface);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 900px;
+    padding: 24px;
+    margin: auto;
+    position: relative;
+}
+
+#episodeGuideClose {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.6em;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px 10px;
+    line-height: 1;
+    border-radius: 4px;
+}
+
+#episodeGuideClose:hover {
+    background: var(--btn-hover);
+    color: var(--text);
+}
+
+#episodeGuideTitle {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin: 0 0 18px;
+    padding-right: 50px;
+}
+
+#episodeGuideSeasonNav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.seasonTab {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--btn-bg);
+    color: var(--text);
+}
+
+.seasonTab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.seasonTab:hover:not(.active) {
+    border-color: var(--accent);
+}
+
+#episodeGuideInfo {
+    font-size: 0.8em;
+    color: var(--muted);
+    margin: 0 0 14px;
+}
+
+#episodeGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.episodeCard {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    width: calc(50% - 6px);
+    transition: border-color 0.15s;
+    animation: fadeUp 0.18s ease;
+}
+
+.episodeCard:hover,
+.episodeCard.active {
+    border-color: var(--accent);
+}
+
+.episodeCard img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    display: block;
+    background: var(--border);
+}
+
+.episodeCard .epMeta {
+    padding: 8px 10px;
+}
+
+.episodeCard .epNumber {
+    font-size: 0.75em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.episodeCard .epTitle {
+    font-size: 0.82em;
+    font-weight: 600;
+    margin: 3px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.episodeCard .epDate {
+    font-size: 0.72em;
+    color: var(--muted);
+    margin: 2px 0 0;
+}
+
+/* ── Load More ── */
+
+#loadMoreBtn {
+    display: block;
+    width: 100%;
+    max-width: 240px;
+    margin: 16px auto 0;
+    padding: 10px 20px;
+    font-size: 0.88em;
+}
+
+/* ── Season/Episode stepper controls ── */
+
+.stepControl {
+    display: none;
+    align-items: center;
+    gap: 4px;
+}
+
+.stepLabel {
+    font-size: 0.78em;
+    color: var(--muted);
+    min-width: 44px;
+    text-align: right;
+}
+
+.stepBtn {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    text-align: center;
+    font-size: 1em;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.stepValue {
+    width: 38px;
+    text-align: center;
+    font-size: 0.85em;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 2px;
+    cursor: pointer;
+}
+
+.stepValue:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+    cursor: text;
+}
+
+/* ── Recently watched (desktop only) ── */
+
+#recentLabel {
+    text-align: center;
+    font-size: 0.82em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 24px 0 0;
+}
+
+#recentSection {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-top: 12px;
+    scrollbar-width: thin;
+}
+
+#recentSection .preview {
+    flex: 0 0 120px;
+    width: 120px;
+    animation: none;
+}
+
+#recentSection .preview img {
+    height: 175px;
+}
+
+@media (max-width: 768px) {
+    #recentSection,
+    #recentLabel {
+        display: none !important;
+    }
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }

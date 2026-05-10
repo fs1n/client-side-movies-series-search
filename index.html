@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie and Series Search</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/utils.js"></script>
@@ -15,7 +16,7 @@
             <div id="headerControls">
                 <button id="switchEngineButton" onclick="switchEngine()">Switch to TMDB</button>
                 <input type="text" id="searchInput" placeholder="Enter search term">
-                <button id="themeToggle" title="Toggle theme">☾</button>
+                <button id="themeToggle" title="Toggle theme"><i class="fa-regular fa-moon"></i></button>
             </div>
         </header>
         <main>
@@ -39,19 +40,38 @@
                         <div id="infoText"></div>
                     </div>
                     <div id="rightControls">
-                        <button id="seasonBackButton" onclick="changeSeason(-1)">Season -</button>
-                        <button id="seasonForwardButton" onclick="changeSeason(1)">Season +</button>
-                        <button id="episodeBackButton" onclick="changeEpisode(-1)">Episode -</button>
-                        <button id="episodeForwardButton" onclick="changeEpisode(1)">Episode +</button>
+                        <div class="stepControl" id="seasonControl" style="display:none">
+                            <span class="stepLabel">Season</span>
+                            <button class="stepBtn" onclick="changeSeason(-1)">−</button>
+                            <input class="stepValue" id="seasonValue" type="text" value="1" readonly>
+                            <button class="stepBtn" onclick="changeSeason(1)">+</button>
+                        </div>
+                        <div class="stepControl" id="episodeControl" style="display:none">
+                            <span class="stepLabel">Episode</span>
+                            <button class="stepBtn" onclick="changeEpisode(-1)">−</button>
+                            <input class="stepValue" id="episodeValue" type="text" value="1" readonly>
+                            <button class="stepBtn" onclick="changeEpisode(1)">+</button>
+                        </div>
+                        <button id="episodeGuideBtn" title="Episode Guide" style="display:none">EP Guide</button>
                         <button id="fullscreenButton" onclick="toggleFullscreen()">Fullscreen</button>
                         <button id="closeButton" onclick="closeIframe()">Close</button>
                     </div>
                 </div>
             </div>
+
             <div id="recentSection"></div>
             <p id="sectionLabel"></p>
             <div id="output"></div>
         </main>
+        <div id="episodeGuideOverlay">
+            <div id="episodeGuideModal">
+                <button id="episodeGuideClose">×</button>
+                <h2 id="episodeGuideTitle"></h2>
+                <div id="episodeGuideSeasonNav"></div>
+                <p id="episodeGuideInfo"></p>
+                <div id="episodeGrid"></div>
+            </div>
+        </div>
         <footer>
             <a href="https://github.com/craeckor/client-side-movies-series-search/tree/beta" target="_blank">
                 <img src="assets/image/github-mark-white.svg" alt="GitHub" style="width: 24px; height: 24px;">
@@ -70,17 +90,17 @@
             var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             var theme = saved || (prefersDark ? 'dark' : 'light');
             $('html').attr('data-theme', theme);
-            $('#themeToggle').text(theme === 'dark' ? '☀' : '☾');
+            $('#themeToggle').html(theme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-regular fa-moon"></i>');
 
             $('#themeToggle').on('click', function () {
                 var current = $('html').attr('data-theme');
                 var next = current === 'dark' ? 'light' : 'dark';
                 $('html').attr('data-theme', next);
                 setCookie('currentTheme', next, 30);
-                $(this).text(next === 'dark' ? '☀' : '☾');
+                $(this).html(next === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-regular fa-moon"></i>');
             });
 
-            // ── Section label + recently watched + empty state ─────
+            // ── Section label + empty state ─────
             var isTmdb = getCookie('currentEngine') === 'tmdb';
             if (isTmdb) {
                 $('#sectionLabel').text('Trending this week');
@@ -90,7 +110,9 @@
                 msg.textContent = 'Search for a movie or series to get started.';
                 document.getElementById('output').appendChild(msg);
             }
+
             renderRecent();
+
 
             // ── Search: autofocus + clear button ───────────────────
             $('#searchInput').wrap('<div id="searchWrapper"></div>');
@@ -142,6 +164,15 @@
                             { scrollTop: $('#iframeContainer').offset().top - 16 },
                             280
                         );
+                        setTimeout(function () {
+                            var isT = getCookie('currentEngine') === 'tmdb';
+                            var st = isT && window.getTmdbSeriesState ? window.getTmdbSeriesState()
+                                   : !isT && window.getImdbSeriesState ? window.getImdbSeriesState()
+                                   : null;
+                            $('#episodeGuideBtn').toggle(!!(st && st.isSeries));
+                        }, 0);
+                    } else {
+                        $('#episodeGuideBtn').hide();
                     }
                 });
             }).observe(document.getElementById('iframeContainer'), {
@@ -177,7 +208,86 @@
                 }, 50);
             });
 
+            // ── Episode guide overlay ──────────────────────────────
+            $(document).on('click', '#episodeGuideClose, #episodeGuideOverlay', function (e) {
+                if (e.target === this) closeEpisodeGuide();
+            });
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $('#episodeGuideOverlay').hasClass('open')) {
+                    closeEpisodeGuide();
+                }
+            });
+
+            // ── Infinite scroll / load more ───────────────────────
+            var scrollTimer;
+            $(window).on('scroll', function () {
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(checkScrollLoadMore, 200);
+            });
+
+            // ── Season/episode stepper direct-edit ────────────────
+            $(document).on('click', '.stepValue', function () {
+                $(this).prop('readonly', false).select();
+            });
+
+            $(document).on('keydown', '.stepValue', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); $(this).blur(); }
+                if (e.key === 'Escape') { $(this).prop('readonly', true); updateStepControlsFromState(); }
+            });
+
+            $(document).on('blur', '.stepValue', function () {
+                var val = parseInt($(this).val(), 10);
+                $(this).prop('readonly', true);
+                if (isNaN(val) || val < 1) { updateStepControlsFromState(); return; }
+                if (this.id === 'seasonValue' && typeof window.setSeasonDirect === 'function') {
+                    window.setSeasonDirect(val);
+                } else if (this.id === 'episodeValue' && typeof window.setEpisodeDirect === 'function') {
+                    window.setEpisodeDirect(val);
+                }
+            });
+
+            // ── Episode guide button (show guide for currently open media) ─
+            $('#episodeGuideBtn').on('click', function () {
+                var isTmdb = getCookie('currentEngine') === 'tmdb';
+                var state;
+                if (isTmdb && typeof window.getTmdbSeriesState === 'function') {
+                    state = window.getTmdbSeriesState();
+                } else if (!isTmdb && typeof window.getImdbSeriesState === 'function') {
+                    state = window.getImdbSeriesState();
+                }
+                if (!state || !state.isSeries) return;
+                openEpisodeGuide(state.currentTmdbId || state.currentImdbId, state.currentTitle, state.currentSeason);
+            });
+
         });
+
+        // ── Global helpers (shared across engines) ─────────────────
+
+        function updateStepControlsFromState() {
+            var sv = document.getElementById('seasonValue');
+            var ev = document.getElementById('episodeValue');
+            var isT = getCookie('currentEngine') === 'tmdb';
+            var st = isT && window.getTmdbSeriesState ? window.getTmdbSeriesState()
+                   : !isT && window.getImdbSeriesState ? window.getImdbSeriesState() : null;
+            if (st && sv) sv.value = st.currentSeason;
+            if (st && ev) ev.value = st.currentEpisode;
+        }
+
+        function closeEpisodeGuide() {
+            $('#episodeGuideOverlay').removeClass('open');
+            document.body.style.overflow = '';
+        }
+
+        function checkScrollLoadMore() {
+            if (typeof window.loadMoreResults !== 'function') return;
+            if (getCookie('currentEngine') !== 'tmdb') return;
+            if (document.getElementById('searchInput').value.trim() === '') return;
+            if (typeof window.hasActiveSearch === 'function' && !window.hasActiveSearch()) return;
+            if ($(window).scrollTop() === 0) return;
+            var nearBottom = $(document).height() - $(window).height() - $(window).scrollTop() < 300;
+            if (nearBottom) window.loadMoreResults();
+        }
     </script>
 </body>
 </html>
