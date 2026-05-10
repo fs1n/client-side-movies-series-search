@@ -513,11 +513,6 @@ main { flex: 1; }
     margin-bottom: 8px;
 }
 
-/* Hide on mobile by default (overridden below) */
-@media (max-width: 768px) {
-    #recentSection, #recentLabel { display: none !important; }
-}
-
 /* === Load more === */
 #loadMoreBtn {
     display: block;
@@ -738,110 +733,247 @@ footer a:hover img { opacity: .9; }
     line-height: 1.5;
 }
 
-/* === Mobile === */
+/* === Mobile — comprehensive rework === */
 @media (max-width: 680px) {
 
-    /* Header: 2 rows */
+    /*
+     * HEADER STRATEGY
+     * display:contents on #headerControls dissolves it from the flex flow
+     * so its children (#switchEngineButton, #searchWrapper, #themeToggle)
+     * become direct flex-items of #headerInner. We then assign them
+     * explicit order values to form two clean rows:
+     *   Row 1: Brand (flex:1) | Switch Engine pill | Theme toggle
+     *   Row 2: Search bar (full width)
+     */
+
     #headerInner {
         height: auto;
         flex-wrap: wrap;
-        padding: 10px 16px;
-        gap: 8px;
         align-items: center;
-    }
-
-    #headerBrand { flex: 1; font-size: 0.82em; }
-
-    #switchEngineButton {
-        font-size: 0.76em;
-        padding: 7px 10px;
-        min-height: 36px;
-    }
-
-    /* Search wraps full width as second row */
-    #headerControls {
-        width: 100%;
-        flex-wrap: wrap;
+        padding: 9px 14px;
         gap: 6px;
     }
 
-    #searchWrapper {
-        flex: 0 0 100%;
-        order: 10;
+    /* Dissolve into parent flex flow */
+    #headerControls {
+        display: contents;
     }
 
-    /* Container padding */
-    #mainContainer { padding: 16px 12px 36px; }
+    /* Row 1 — Brand */
+    #headerBrand {
+        order: 0;
+        flex: 1;
+        font-size: 0.82em;
+    }
 
-    /* 2-col poster grid */
+    /* Row 1 — Engine switch: show only abbreviated target engine */
+    #switchEngineButton {
+        order: 1;
+        flex-shrink: 0;
+        font-size: 0;          /* hide full text */
+        min-width: 52px;
+        padding: 7px 10px;
+        min-height: 36px;
+        text-align: center;
+    }
+
+    #switchEngineButton::before {
+        content: attr(data-engine);
+        font-size: 0.79rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+    }
+
+    /* Row 1 — Theme toggle */
+    #themeToggle {
+        order: 2;
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Row 2 — Search bar spans full width */
+    #searchWrapper {
+        order: 3;
+        flex: 0 0 100%;
+    }
+
+    /* PAGE BODY */
+    #mainContainer {
+        padding: 14px 12px 40px;
+    }
+
+    /* 2-column poster grid */
     #output {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
 
-    /* Always show close button on touch */
-    #playerCloseOverlay { opacity: 1; }
+    /* PLAYER */
 
-    /* Player bar: stacked */
-    #buttonContainer {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 10px 12px;
-        gap: 8px;
+    /* Close button always visible on touch */
+    #playerCloseOverlay {
+        opacity: 1;
     }
 
-    #leftControls { flex-wrap: wrap; gap: 6px; }
+    /* Controls bar: flat column, sections separated by borders */
+    #buttonContainer {
+        flex-direction: column;
+        padding: 0;
+        gap: 0;
+    }
+
+    /* Row A — Host selector + now-playing info */
+    #leftControls {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--border);
+    }
 
     #leftControls select {
-        flex: 1;
-        font-size: 0.82em;
+        flex: 0 0 auto;
+        max-width: 130px;
+        font-size: 0.81em;
         min-height: 40px;
     }
 
     #infoText {
-        flex: 0 0 100%;
-        max-width: 100%;
-        white-space: normal;
+        flex: 1;
+        min-width: 0;
         font-size: 0.79em;
-        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.35;
     }
 
-    /* Steppers side by side, buttons flex */
+    /* Row B — Steppers (half each) then action buttons (equal thirds) */
     #rightControls {
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 7px;
+        padding: 9px 12px;
+        align-items: stretch;
     }
 
+    /* Each stepper takes exactly half the row */
     #rightControls .stepControl {
-        flex: 1 1 calc(50% - 4px);
+        flex: 0 0 calc(50% - 3.5px);
         justify-content: center;
-        padding: 6px 10px;
-        min-height: 40px;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px;
+        min-height: 48px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
     }
 
-    .stepBtn { width: 30px; height: 30px; min-height: unset; font-size: 1.1em; }
-    .stepValue { width: 38px; height: 30px; font-size: 0.9em; }
+    .stepLabel {
+        font-size: 0.69em;
+        padding-right: 0;
+        min-width: auto;
+    }
 
-    #rightControls > button { flex: 1; min-height: 40px; font-size: 0.83em; }
+    .stepBtn {
+        width: 32px;
+        height: 32px;
+        min-height: unset;
+        font-size: 1.2em;
+    }
 
-    /* Show recently watched on mobile */
-    #recentSection, #recentLabel { display: flex !important; }
-    #recentLabel { display: block !important; }
+    .stepValue {
+        width: 36px;
+        height: 32px;
+        font-size: 0.88em;
+    }
 
-    #recentSection .preview { flex: 0 0 84px; width: 84px; }
+    /* Action buttons (Episodes / Fullscreen / Close) share next row equally */
+    #rightControls > button {
+        flex: 1 1 70px;
+        min-height: 44px;
+        font-size: 0.82em;
+        padding: 8px 4px;
+    }
 
-    /* Episode guide */
-    #episodeGuideModal { padding: 18px 16px; }
-    .epThumb { display: none; }
-    #episodeGrid { max-height: 54vh; }
+    /* RECENTLY WATCHED — horizontal strip */
+    #recentSection {
+        display: flex !important;
+    }
 
-    footer { margin-top: 28px; }
+    #recentLabel {
+        display: block !important;
+    }
+
+    #recentSection .preview {
+        flex: 0 0 84px;
+        width: 84px;
+    }
+
+    /* EPISODE GUIDE — full-screen sheet */
+    #episodeGuideOverlay {
+        padding: 0;
+    }
+
+    #episodeGuideOverlay.open {
+        align-items: stretch;
+    }
+
+    #episodeGuideModal {
+        border-radius: 0;
+        margin: 0;
+        padding: 20px 14px 28px;
+        min-height: 100vh;
+        min-height: 100svh;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #episodeGuideTitle {
+        font-size: 0.95em;
+        margin-bottom: 14px;
+        padding-right: 44px;
+    }
+
+    .epThumb {
+        display: none;
+    }
+
+    #episodeGrid {
+        max-height: unset;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    footer {
+        margin-top: 28px;
+    }
 }
 
+/* Very small screens */
 @media (max-width: 380px) {
-    #output { gap: 8px; }
-    #headerInner { padding: 10px 12px; }
-    #mainContainer { padding: 14px 10px 32px; }
+    #headerInner {
+        padding: 9px 12px;
+    }
+
+    #mainContainer {
+        padding: 12px 10px 36px;
+    }
+
+    #output {
+        gap: 8px;
+    }
+
+    #leftControls select {
+        max-width: 108px;
+    }
+
+    #rightControls > button {
+        font-size: 0.74em;
+        padding: 8px 3px;
+    }
 }
 
 /* === Reduced motion === */

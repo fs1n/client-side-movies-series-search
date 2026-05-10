@@ -26,10 +26,10 @@
         <div id="headerInner">
             <div id="headerBrand">
                 <i class="fa-solid fa-film" aria-hidden="true"></i>
-                <span>Movie Search</span>
+                <span>CSMSS</span>
             </div>
             <div id="headerControls">
-                <button id="switchEngineButton" onclick="switchEngine()">Switch to TMDB</button>
+                <button id="switchEngineButton" data-engine="TMDB" onclick="switchEngine()">Switch to TMDB</button>
                 <input type="text" id="searchInput" placeholder="Search movies &amp; series…" autocomplete="off" spellcheck="false">
                 <button id="themeToggle" title="Toggle theme"><i class="fa-regular fa-moon"></i></button>
             </div>
@@ -140,6 +140,10 @@
             }
 
             renderRecent();
+
+            // ── Set abbreviated engine label for mobile button ─────
+            var engNow = getCookie('currentEngine') || 'imdb';
+            $('#switchEngineButton').attr('data-engine', engNow === 'imdb' ? 'TMDB' : 'IMDB');
 
             // ── Search: autofocus + clear button ───────────────────
             $('#searchInput').wrap('<div id="searchWrapper"></div>');
