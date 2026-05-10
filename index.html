@@ -356,7 +356,14 @@
         (function () {
             var engine = getCookie('currentEngine') || 'imdb';
             var savedSearch = sessionStorage.getItem('csmss_search');
-            if (savedSearch) $('#searchInput').val(savedSearch).trigger('input');
+            if (savedSearch) {
+                $('#searchInput').val(savedSearch);
+                if (typeof window.fetchTmdbData === 'function') {
+                    window.fetchTmdbData(1);
+                } else {
+                    $('#searchInput').trigger('input');
+                }
+            }
             var savedPlayer = sessionStorage.getItem('csmss_player');
             if (savedPlayer) {
                 try {

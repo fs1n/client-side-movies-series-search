@@ -114,6 +114,7 @@ if (getCookie('currentEngine') === 'tmdb') {
             currentPage = page;
             hasMorePages = movieData.total_pages > page || tvData.total_pages > page;
 
+            if (page === 1) document.getElementById('sectionLabel').textContent = '';
             displayResults(searchResults, page > 1);
         } catch (error) {
             const output = document.getElementById('output');
@@ -392,6 +393,7 @@ if (getCookie('currentEngine') === 'tmdb') {
             currentPage = 1;
             hasMorePages = false;
             activeQuery = '';
+            document.getElementById('sectionLabel').textContent = 'Trending this week';
             displayResults(data.results);
         } catch (e) { /* silent fail */ }
     }
@@ -439,5 +441,9 @@ if (getCookie('currentEngine') === 'tmdb') {
 
     window.hasActiveSearch = function() { return !!activeQuery; };
 
-    loadTrending();
+    window.fetchTmdbData = fetchData;
+
+    if (!sessionStorage.getItem('csmss_search')) {
+        loadTrending();
+    }
 }
