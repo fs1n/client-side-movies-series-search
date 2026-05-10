@@ -1,96 +1,139 @@
-/* Light mode defaults */
+/* === Tokens: warm editorial palette === */
 :root {
-    --bg:        #f5f5f5;
-    --surface:   #ffffff;
-    --border:    #e2e2e2;
-    --text:      #111111;
-    --muted:     #666666;
-    --btn-bg:    #efefef;
-    --btn-hover: #e2e2e2;
-    --accent:    #3b82f6;
+    --bg:           #f4f0e8;
+    --surface:      #faf8f4;
+    --border:       #ddd6c8;
+    --text:         #1c1814;
+    --muted:        #8a8078;
+    --btn-bg:       #eae4da;
+    --btn-hover:    #ddd6c8;
+    --accent:       #b07820;
+    --radius:       8px;
+    --radius-sm:    5px;
+    --shadow-sm:    0 1px 4px rgba(28,20,10,.08), 0 1px 2px rgba(28,20,10,.04);
+    --shadow:       0 4px 14px rgba(28,20,10,.11), 0 1px 4px rgba(28,20,10,.06);
+    --shadow-lg:    0 16px 48px rgba(28,20,10,.16), 0 4px 12px rgba(28,20,10,.08);
+    --header-h:     56px;
 }
 
-/* Dark mode via attribute (set by jQuery) */
 [data-theme="dark"] {
-    --bg:        #0f0f0f;
-    --surface:   #1a1a1a;
-    --border:    #2a2a2a;
-    --text:      #f0f0f0;
-    --muted:     #7a7a7a;
-    --btn-bg:    #252525;
-    --btn-hover: #333333;
-    --accent:    #3b82f6;
+    --bg:           #18140f;
+    --surface:      #201c16;
+    --border:       #2e2820;
+    --text:         #f0ece2;
+    --muted:        #7a7068;
+    --btn-bg:       #2a2520;
+    --btn-hover:    #362f28;
+    --accent:       #cc9230;
+    --shadow-sm:    0 1px 4px rgba(0,0,0,.35);
+    --shadow:       0 4px 14px rgba(0,0,0,.50);
+    --shadow-lg:    0 16px 48px rgba(0,0,0,.70);
 }
 
-/* System dark mode default (before cookie is applied) */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --bg:        #0f0f0f;
-        --surface:   #1a1a1a;
-        --border:    #2a2a2a;
-        --text:      #f0f0f0;
-        --muted:     #7a7a7a;
-        --btn-bg:    #252525;
-        --btn-hover: #333333;
-        --accent:    #3b82f6;
+        --bg:           #18140f;
+        --surface:      #201c16;
+        --border:       #2e2820;
+        --text:         #f0ece2;
+        --muted:        #7a7068;
+        --btn-bg:       #2a2520;
+        --btn-hover:    #362f28;
+        --accent:       #cc9230;
+        --shadow-sm:    0 1px 4px rgba(0,0,0,.35);
+        --shadow:       0 4px 14px rgba(0,0,0,.50);
+        --shadow-lg:    0 16px 48px rgba(0,0,0,.70);
     }
 }
 
-*, *::before, *::after {
-    box-sizing: border-box;
-}
+/* === Reset === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
 
 body {
-    font-family: system-ui, sans-serif;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    line-height: 1.5;
 }
 
-#mainContainer {
-    max-width: 1200px;
-    width: 100%;
-}
-
-/* ── Header ── */
-
+/* === Header === */
 header {
-    text-align: center;
-    margin-bottom: 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
 }
 
-header h1 {
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    margin: 0 0 14px;
+/* Subtle transparency on modern browsers */
+@supports (backdrop-filter: blur(1px)) {
+    header {
+        background: rgba(244,240,232,.90);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+    [data-theme="dark"] header {
+        background: rgba(24,20,15,.90);
+    }
+}
+
+#headerInner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: var(--header-h);
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+#headerBrand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    color: var(--text);
+    font-size: 0.86em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    user-select: none;
+}
+
+#headerBrand i {
+    color: var(--accent);
+    font-size: 1em;
 }
 
 #headerControls {
     display: flex;
-    justify-content: center;
     align-items: center;
     gap: 8px;
-    max-width: 640px;
-    margin: 0 auto;
+    flex: 1;
+    min-width: 0;
 }
 
-/* ── Shared control style ── */
-
+/* === Shared controls === */
 button, select {
     font-family: inherit;
-    font-size: 0.88em;
+    font-size: 0.84em;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
     background: var(--btn-bg);
     color: var(--text);
-    padding: 8px 14px;
+    padding: 7px 12px;
     white-space: nowrap;
+    transition: background .12s, border-color .12s, color .12s;
+    min-height: 36px;
+    line-height: 1.2;
 }
 
 button:hover, select:hover {
@@ -100,45 +143,44 @@ button:hover, select:hover {
 
 button:focus-visible, select:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px var(--accent);
+    box-shadow: 0 0 0 2px rgba(176,120,32,.36);
 }
 
-/* ── Search input ── */
+button:active { transform: scale(0.97); }
 
-#searchInput {
-    flex: 1;
-    padding: 10px 14px;
-    font-size: 0.95em;
-    font-family: inherit;
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    outline: none;
-}
-
-#searchInput:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-/* ── Search wrapper (clear button) ── */
-
+/* === Search === */
 #searchWrapper {
     position: relative;
     flex: 1;
     display: flex;
+    min-width: 0;
 }
 
-#searchWrapper #searchInput {
+#searchInput {
+    width: 100%;
     flex: 1;
-    padding-right: 36px;
+    padding: 8px 38px 8px 14px;
+    font-size: 0.92em;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    outline: none;
+    min-height: 36px;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+#searchInput::placeholder { color: var(--muted); }
+
+#searchInput:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(176,120,32,.20);
 }
 
 #clearSearch {
     position: absolute;
-    right: 4px;
+    right: 5px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -148,121 +190,154 @@ button:focus-visible, select:focus-visible {
     font-size: 1.1em;
     border-radius: 4px;
     line-height: 1;
+    min-height: unset;
+    transition: color .12s;
 }
 
-#clearSearch:hover {
-    color: var(--text);
-    background: none;
-    border: none;
+#clearSearch:hover { color: var(--text); background: none; border: none; }
+
+#switchEngineButton {
+    flex-shrink: 0;
+    font-size: 0.79em;
+    padding: 7px 11px;
 }
 
-/* ── Section label ── */
+#themeToggle {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
 
+/* === Main container === */
+#mainContainer {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 24px 48px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+main { flex: 1; }
+
+/* === Section label === */
 #sectionLabel {
-    text-align: center;
-    font-size: 0.82em;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-size: 0.71em;
+    font-weight: 700;
+    letter-spacing: 0.11em;
     text-transform: uppercase;
     color: var(--muted);
-    margin: 24px 0 0;
+    margin: 0 0 14px;
 }
 
-#sectionLabel:empty {
-    margin: 0;
-}
+#sectionLabel:empty { display: none; }
 
-/* ── Result cards ── */
-
+/* === Card grid === */
 @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(6px); }
+    from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
 #output {
-    margin-top: 24px;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 16px;
-    justify-content: center;
 }
 
 #output.loading::after {
     content: 'Searching\2026';
     color: var(--muted);
-    font-size: 0.9em;
-    width: 100%;
+    font-size: 0.88em;
+    grid-column: 1 / -1;
     text-align: center;
-    padding: 40px 0;
+    padding: 80px 0;
     display: block;
 }
 
 .preview {
-    border: 1px solid var(--border);
     background: var(--surface);
-    border-radius: 6px;
-    width: 180px;
-    cursor: pointer;
-    text-align: left;
+    border-radius: var(--radius);
     overflow: hidden;
-    transition: border-color 0.15s, transform 0.15s;
-    animation: fadeUp 0.18s ease;
+    cursor: pointer;
+    animation: fadeUp 0.22s ease both;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s cubic-bezier(0.22,1,.36,1), box-shadow 0.2s cubic-bezier(0.22,1,.36,1), border-color .15s;
+    border: 1.5px solid transparent;
+    text-align: left;
 }
 
 .preview:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
 }
 
 .preview.active {
     border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), var(--shadow);
 }
 
 .preview img {
     width: 100%;
-    height: 260px;
+    aspect-ratio: 2 / 3;
     object-fit: cover;
     display: block;
+    background: var(--btn-bg);
 }
 
 .preview h3 {
-    font-size: 0.9em;
+    font-size: 0.82em;
     font-weight: 600;
-    margin: 10px 10px 4px;
-    white-space: nowrap;
+    margin: 9px 10px 2px;
+    line-height: 1.35;
     overflow: hidden;
-    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-/* Description — hide on narrow cards */
-.preview p:first-of-type {
-    display: none;
-}
+.preview p:first-of-type { display: none; }
 
-/* Year + type row */
-.preview p:nth-of-type(2),
-.preview p:nth-of-type(3) {
-    font-size: 0.78em;
+.preview p:nth-of-type(2) {
+    font-size: 0.73em;
     color: var(--muted);
     margin: 0 10px;
     display: inline;
 }
 
-.preview p:nth-of-type(2)::after {
-    content: ' · ';
-}
+.preview p:nth-of-type(2)::after { content: ' \00B7 '; }
 
 .preview p:nth-of-type(3) {
+    font-size: 0.73em;
+    color: var(--muted);
     display: inline-block;
-    margin-bottom: 10px;
+    margin: 0 10px 10px;
 }
 
-/* ── Iframe section ── */
+/* === Empty / error state === */
+.empty-state {
+    grid-column: 1 / -1;
+    width: 100%;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.88em;
+    padding: 72px 0;
+}
 
+/* === Iframe player === */
 #iframeContainer {
     display: none;
-    margin-top: 20px;
+    margin-bottom: 28px;
     position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
 }
 
 #playerCloseOverlay {
@@ -270,183 +345,228 @@ button:focus-visible, select:focus-visible {
     top: 10px;
     right: 10px;
     z-index: 10;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     padding: 0;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0,0,0,.58);
     color: #fff;
     border: none;
-    font-size: 1.1em;
-    line-height: 1;
+    font-size: 1em;
     opacity: 0;
-    transition: opacity 0.18s;
+    transition: opacity .18s, background .12s;
     cursor: pointer;
     backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: unset;
 }
 
-#iframeContainer:hover #playerCloseOverlay {
-    opacity: 1;
-}
+#iframeContainer:hover #playerCloseOverlay { opacity: 1; }
 
-#playerCloseOverlay:hover {
-    background: rgba(0, 0, 0, 0.8);
-    border-color: transparent;
-}
-
-@media (max-width: 768px) {
-    #playerCloseOverlay {
-        opacity: 1;
-    }
-}
+#playerCloseOverlay:hover { background: rgba(0,0,0,.85); border: none; }
 
 #iframeContainer iframe {
     width: 100%;
     aspect-ratio: 16 / 9;
     height: auto;
     border: none;
-    border-radius: 6px 6px 0 0;
     display: block;
 }
 
+/* === Player controls bar === */
 #buttonContainer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: none;
-    border-radius: 0 0 6px 6px;
+    border-top: 1px solid var(--border);
     padding: 8px 12px;
     gap: 8px;
 }
 
-#leftControls, #rightControls {
+#leftControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+#rightControls {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
     flex-wrap: wrap;
 }
 
 #infoText {
-    font-size: 0.85em;
+    font-size: 0.8em;
     color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 #closeButton:hover {
     color: #ef4444;
     border-color: #ef4444;
+    background: rgba(239,68,68,.08);
 }
 
-/* ── Empty / error state ── */
+/* === Steppers === */
+.stepControl {
+    display: none;
+    align-items: center;
+    gap: 3px;
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 4px 8px;
+}
 
-.empty-state {
-    width: 100%;
+.stepLabel {
+    font-size: 0.72em;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    padding-right: 2px;
+    white-space: nowrap;
+}
+
+.stepBtn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
     text-align: center;
-    color: var(--muted);
-    font-size: 0.9em;
-    padding: 40px 0;
-    margin: 0;
+    font-size: 1.05em;
+    line-height: 1;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    min-height: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* ── Footer ── */
+.stepBtn:hover { background: var(--btn-hover); border: none; }
 
-footer {
-    margin-top: 36px;
+.stepValue {
+    width: 34px;
     text-align: center;
-    color: var(--muted);
-    font-size: 0.82em;
-    padding-bottom: 20px;
-}
-
-footer a {
-    color: var(--muted);
-    text-decoration: none;
-}
-
-footer a:hover {
+    font-size: 0.85em;
+    font-family: inherit;
+    background: var(--surface);
     color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 2px;
+    cursor: pointer;
+    min-height: unset;
+    height: 26px;
 }
 
-footer img {
-    opacity: 0.6;
-    transition: opacity 0.15s;
+.stepValue:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(176,120,32,.22);
+    cursor: text;
 }
 
-footer a:hover img {
-    opacity: 1;
+/* === Recently watched === */
+#recentLabel {
+    font-size: 0.71em;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 24px 0 10px;
 }
 
-/* Invert GitHub icon in light mode */
-:root:not([data-theme="dark"]) footer img {
-    filter: brightness(0);
+#recentSection {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
 }
+
+#recentSection::-webkit-scrollbar { height: 3px; }
+#recentSection::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+#recentSection .preview {
+    flex: 0 0 100px;
+    width: 100px;
+    animation: none;
+}
+
+#recentSection .preview h3 {
+    font-size: 0.74em;
+    -webkit-line-clamp: 1;
+    margin-bottom: 8px;
+}
+
+/* Hide on mobile by default (overridden below) */
+@media (max-width: 768px) {
+    #recentSection, #recentLabel { display: none !important; }
+}
+
+/* === Load more === */
+#loadMoreBtn {
+    display: block;
+    width: 100%;
+    max-width: 200px;
+    margin: 24px auto 0;
+    padding: 10px 20px;
+    font-size: 0.84em;
+}
+
+/* === Footer === */
+footer {
+    margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.78em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+footer a { color: var(--muted); text-decoration: none; transition: color .12s; }
+footer a:hover { color: var(--text); }
+
+footer img { opacity: .45; transition: opacity .15s; display: block; }
+footer a:hover img { opacity: .9; }
+
+:root:not([data-theme="dark"]) footer img { filter: brightness(0); }
 
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) footer img {
-        filter: none;
-    }
+    :root:not([data-theme="light"]) footer img { filter: none; }
 }
 
-/* ── Responsive ── */
-
-@media (max-width: 768px) {
-    body {
-        padding: 12px;
-    }
-
-    #headerControls {
-        flex-wrap: wrap;
-    }
-
-    #searchInput {
-        width: 100%;
-        flex: 1 1 100%;
-        order: -1;
-    }
-
-    .preview {
-        width: calc(50% - 8px);
-    }
-
-    #buttonContainer {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    #leftControls, #rightControls {
-        justify-content: center;
-    }
-
-    #rightControls button {
-        flex: 1 1 calc(33% - 6px);
-    }
-}
-
-@media (max-width: 480px) {
-    .preview {
-        width: 100%;
-    }
-
-    .preview img {
-        height: 200px;
-    }
-
-    #rightControls button {
-        flex: 1 1 calc(50% - 6px);
-    }
-}
-
-/* ── Episode Guide Overlay ── */
-
+/* === Episode guide overlay === */
 #episodeGuideOverlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.65);
+    background: rgba(0,0,0,.60);
     z-index: 1000;
     overflow-y: auto;
     padding: 20px;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+    #episodeGuideOverlay { backdrop-filter: blur(4px); }
 }
 
 #episodeGuideOverlay.open {
@@ -457,109 +577,115 @@ footer a:hover img {
 
 #episodeGuideModal {
     background: var(--surface);
-    border-radius: 10px;
+    border-radius: 12px;
     width: 100%;
-    max-width: 900px;
-    padding: 24px;
+    max-width: 860px;
+    padding: 28px;
     margin: auto;
     position: relative;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
 }
 
 #episodeGuideClose {
     position: absolute;
-    top: 12px;
+    top: 14px;
     right: 16px;
     background: none;
     border: none;
-    font-size: 1.6em;
+    font-size: 1.5em;
     color: var(--muted);
     cursor: pointer;
     padding: 4px 10px;
     line-height: 1;
     border-radius: 4px;
+    min-height: unset;
+    transition: background .1s, color .1s;
 }
 
-#episodeGuideClose:hover {
-    background: var(--btn-hover);
-    color: var(--text);
-}
+#episodeGuideClose:hover { background: var(--btn-hover); color: var(--text); border: none; }
 
 #episodeGuideTitle {
     font-size: 1.05em;
-    font-weight: 600;
+    font-weight: 700;
     margin: 0 0 18px;
-    padding-right: 50px;
+    padding-right: 52px;
+    letter-spacing: -0.01em;
 }
 
 #episodeGuideSeasonNav {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 16px;
     flex-wrap: wrap;
 }
 
 .seasonTab {
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 0.85em;
+    padding: 5px 13px;
+    border-radius: 20px;
+    font-size: 0.79em;
     cursor: pointer;
     border: 1px solid var(--border);
     background: var(--btn-bg);
     color: var(--text);
+    transition: background .1s, border-color .1s, color .1s;
+    min-height: unset;
+    font-weight: 500;
 }
 
-.seasonTab.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-}
+.seasonTab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.seasonTab:hover:not(.active) { border-color: var(--accent); }
 
-.seasonTab:hover:not(.active) {
-    border-color: var(--accent);
+#episodeGuideSeasonOverview {
+    font-size: 0.8em;
+    color: var(--muted);
+    font-style: italic;
+    margin: 0 0 14px;
+    line-height: 1.55;
 }
 
 #episodeGuideInfo {
-    font-size: 0.8em;
+    font-size: 0.77em;
     color: var(--muted);
-    margin: 0 0 14px;
+    margin: 0 0 12px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
 }
 
 #episodeGrid {
     display: flex;
     flex-direction: column;
-    gap: 0;
-    margin-bottom: 16px;
-    max-height: 60vh;
+    max-height: 58vh;
     overflow-y: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
 }
+
+#episodeGrid::-webkit-scrollbar { width: 4px; }
+#episodeGrid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .episodeCard {
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    border: none;
     border-bottom: 1px solid var(--border);
     border-left: 3px solid transparent;
     background: transparent;
-    border-radius: 0;
-    padding: 12px 8px;
+    padding: 12px 14px;
     cursor: pointer;
-    transition: background 0.12s, border-left-color 0.12s;
+    transition: background .12s, border-left-color .12s;
 }
 
-.episodeCard:hover {
-    background: var(--btn-bg);
-}
-
-.episodeCard.active {
-    border-left-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 6%, transparent);
-}
+.episodeCard:last-child { border-bottom: none; }
+.episodeCard:hover { background: rgba(176,120,32,.05); }
+.episodeCard.active { border-left-color: var(--accent); background: rgba(176,120,32,.09); }
 
 .epThumb {
-    width: 160px;
-    height: 90px;
+    width: 140px;
+    height: 79px;
     object-fit: cover;
     border-radius: 4px;
     flex-shrink: 0;
@@ -567,10 +693,7 @@ footer a:hover img {
     display: block;
 }
 
-.epBody {
-    flex: 1;
-    min-width: 0;
-}
+.epBody { flex: 1; min-width: 0; }
 
 .epTopRow {
     display: flex;
@@ -580,11 +703,12 @@ footer a:hover img {
 }
 
 .epNumber {
-    font-size: 0.72em;
+    font-size: 0.69em;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.07em;
     flex-shrink: 0;
+    font-weight: 600;
 }
 
 .epTitle {
@@ -592,156 +716,139 @@ footer a:hover img {
     font-weight: 600;
     flex: 1;
     min-width: 0;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.epRating {
-    font-size: 0.78em;
-    color: var(--accent);
-    flex-shrink: 0;
-    margin-left: auto;
-}
+.epRating { font-size: 0.76em; color: #e8a020; flex-shrink: 0; margin-left: auto; font-weight: 600; }
 
-.epSubRow {
-    display: flex;
-    gap: 4px;
-    margin-top: 4px;
-}
+.epSubRow { display: flex; gap: 6px; margin-top: 3px; }
 
-.epDate, .epRuntime {
-    font-size: 0.74em;
-    color: var(--muted);
-}
+.epDate, .epRuntime { font-size: 0.72em; color: var(--muted); }
 
 .epDesc {
-    font-size: 0.78em;
+    font-size: 0.77em;
     color: var(--muted);
     margin: 6px 0 0;
     display: -webkit-box;
-    display: box;
     -webkit-line-clamp: 2;
-    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-}
-
-#episodeGuideSeasonOverview {
-    font-size: 0.8em;
-    color: var(--muted);
-    font-style: italic;
-    margin: 0 0 12px;
     line-height: 1.5;
 }
 
-@media (max-width: 480px) {
-    .epThumb { display: none; }
-    #episodeGrid { max-height: 55vh; }
-}
+/* === Mobile === */
+@media (max-width: 680px) {
 
-/* ── Load More ── */
-
-#loadMoreBtn {
-    display: block;
-    width: 100%;
-    max-width: 240px;
-    margin: 16px auto 0;
-    padding: 10px 20px;
-    font-size: 0.88em;
-}
-
-/* ── Season/Episode stepper controls ── */
-
-.stepControl {
-    display: none;
-    align-items: center;
-    gap: 4px;
-}
-
-.stepLabel {
-    font-size: 0.78em;
-    color: var(--muted);
-    min-width: 44px;
-    text-align: right;
-}
-
-.stepBtn {
-    width: 26px;
-    height: 26px;
-    padding: 0;
-    text-align: center;
-    font-size: 1em;
-    line-height: 1;
-    flex-shrink: 0;
-}
-
-.stepValue {
-    width: 38px;
-    text-align: center;
-    font-size: 0.85em;
-    font-family: inherit;
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 4px 2px;
-    cursor: pointer;
-}
-
-.stepValue:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
-    cursor: text;
-}
-
-/* ── Recently watched (desktop only) ── */
-
-#recentLabel {
-    text-align: center;
-    font-size: 0.82em;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin: 24px 0 0;
-}
-
-#recentSection {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    margin-top: 12px;
-    scrollbar-width: thin;
-}
-
-#recentSection .preview {
-    flex: 0 0 120px;
-    width: 120px;
-    animation: none;
-}
-
-#recentSection .preview img {
-    height: 175px;
-}
-
-@media (max-width: 768px) {
-    #recentSection,
-    #recentLabel {
-        display: none !important;
+    /* Header: 2 rows */
+    #headerInner {
+        height: auto;
+        flex-wrap: wrap;
+        padding: 10px 16px;
+        gap: 8px;
+        align-items: center;
     }
+
+    #headerBrand { flex: 1; font-size: 0.82em; }
+
+    #switchEngineButton {
+        font-size: 0.76em;
+        padding: 7px 10px;
+        min-height: 36px;
+    }
+
+    /* Search wraps full width as second row */
+    #headerControls {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    #searchWrapper {
+        flex: 0 0 100%;
+        order: 10;
+    }
+
+    /* Container padding */
+    #mainContainer { padding: 16px 12px 36px; }
+
+    /* 2-col poster grid */
+    #output {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    /* Always show close button on touch */
+    #playerCloseOverlay { opacity: 1; }
+
+    /* Player bar: stacked */
+    #buttonContainer {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    #leftControls { flex-wrap: wrap; gap: 6px; }
+
+    #leftControls select {
+        flex: 1;
+        font-size: 0.82em;
+        min-height: 40px;
+    }
+
+    #infoText {
+        flex: 0 0 100%;
+        max-width: 100%;
+        white-space: normal;
+        font-size: 0.79em;
+        line-height: 1.4;
+    }
+
+    /* Steppers side by side, buttons flex */
+    #rightControls {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    #rightControls .stepControl {
+        flex: 1 1 calc(50% - 4px);
+        justify-content: center;
+        padding: 6px 10px;
+        min-height: 40px;
+    }
+
+    .stepBtn { width: 30px; height: 30px; min-height: unset; font-size: 1.1em; }
+    .stepValue { width: 38px; height: 30px; font-size: 0.9em; }
+
+    #rightControls > button { flex: 1; min-height: 40px; font-size: 0.83em; }
+
+    /* Show recently watched on mobile */
+    #recentSection, #recentLabel { display: flex !important; }
+    #recentLabel { display: block !important; }
+
+    #recentSection .preview { flex: 0 0 84px; width: 84px; }
+
+    /* Episode guide */
+    #episodeGuideModal { padding: 18px 16px; }
+    .epThumb { display: none; }
+    #episodeGrid { max-height: 54vh; }
+
+    footer { margin-top: 28px; }
 }
 
-/* ── Reduced motion ── */
+@media (max-width: 380px) {
+    #output { gap: 8px; }
+    #headerInner { padding: 10px 12px; }
+    #mainContainer { padding: 14px 10px 32px; }
+}
 
+/* === Reduced motion === */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
-        animation-duration: 0.01ms !important;
+        animation-duration: .01ms !important;
         animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+        transition-duration: .01ms !important;
     }
 }

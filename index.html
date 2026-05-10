@@ -4,22 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie and Series Search</title>
+    <link rel="icon" type="image/svg+xml" href="assets/image/favicon.svg">
+    <!-- Apply theme immediately to avoid flash on load / hard-reload -->
+    <script>
+    (function(){
+        function gc(n){var m=document.cookie.match(new RegExp('(?:^|; )'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null;}
+        var saved=gc('currentTheme');
+        var dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme',saved||(dark?'dark':'light'));
+    })();
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/utils.js"></script>
 </head>
 <body>
-    <div id="mainContainer">
-        <header>
-            <h1>Movie and Series Search</h1>
+
+    <!-- ── Sticky header ───────────────────────────── -->
+    <header>
+        <div id="headerInner">
+            <div id="headerBrand">
+                <i class="fa-solid fa-film" aria-hidden="true"></i>
+                <span>Movie Search</span>
+            </div>
             <div id="headerControls">
                 <button id="switchEngineButton" onclick="switchEngine()">Switch to TMDB</button>
-                <input type="text" id="searchInput" placeholder="Enter search term">
+                <input type="text" id="searchInput" placeholder="Search movies &amp; series…" autocomplete="off" spellcheck="false">
                 <button id="themeToggle" title="Toggle theme"><i class="fa-regular fa-moon"></i></button>
             </div>
-        </header>
+        </div>
+    </header>
+
+    <!-- ── Page body ───────────────────────────────── -->
+    <div id="mainContainer">
         <main>
+
+            <!-- Player -->
             <div id="iframeContainer">
                 <iframe id="movieIframe" allowfullscreen></iframe>
                 <button id="playerCloseOverlay" onclick="closeIframe()" title="Close (Esc)">✕</button>
@@ -48,7 +69,7 @@
                             <button class="stepBtn" onclick="changeSeason(1)">+</button>
                         </div>
                         <div class="stepControl" id="episodeControl" style="display:none">
-                            <span class="stepLabel">Episode</span>
+                            <span class="stepLabel">Ep</span>
                             <button class="stepBtn" onclick="changeEpisode(-1)">−</button>
                             <input class="stepValue" id="episodeValue" type="text" value="1" readonly>
                             <button class="stepBtn" onclick="changeEpisode(1)">+</button>
@@ -60,27 +81,32 @@
                 </div>
             </div>
 
+            <!-- Recently watched + results -->
             <div id="recentSection"></div>
             <p id="sectionLabel"></p>
             <div id="output"></div>
         </main>
-        <div id="episodeGuideOverlay">
-            <div id="episodeGuideModal">
-                <button id="episodeGuideClose">×</button>
-                <h2 id="episodeGuideTitle"></h2>
-                <div id="episodeGuideSeasonNav"></div>
-                <p id="episodeGuideSeasonOverview"></p>
-                <p id="episodeGuideInfo"></p>
-                <div id="episodeGrid"></div>
-            </div>
-        </div>
+
         <footer>
-            <a href="https://github.com/craeckor/client-side-movies-series-search/tree/beta" target="_blank">
-                <img src="assets/image/github-mark-white.svg" alt="GitHub" style="width: 24px; height: 24px;">
+            <a href="https://github.com/craeckor/client-side-movies-series-search/tree/beta" target="_blank" title="View on GitHub">
+                <img src="assets/image/github-mark-white.svg" alt="GitHub" width="22" height="22">
             </a>
-            <p>If you experience issues, try our official version <a href="https://csmss.craeckor.ch/" target="_blank">here</a>. Some functions may not yet be available.</p>
+            <p>Issues? Try the official version at <a href="https://csmss.craeckor.ch/" target="_blank">csmss.craeckor.ch</a></p>
         </footer>
     </div>
+
+    <!-- ── Episode guide overlay (fixed, portal-like) ── -->
+    <div id="episodeGuideOverlay">
+        <div id="episodeGuideModal">
+            <button id="episodeGuideClose">×</button>
+            <h2 id="episodeGuideTitle"></h2>
+            <div id="episodeGuideSeasonNav"></div>
+            <p id="episodeGuideSeasonOverview"></p>
+            <p id="episodeGuideInfo"></p>
+            <div id="episodeGrid"></div>
+        </div>
+    </div>
+
     <script src="assets/js/imdb.js"></script>
     <script src="assets/js/tmdb.js"></script>
     <script src="assets/js/switcher.js"></script>
@@ -102,7 +128,7 @@
                 $(this).html(next === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-regular fa-moon"></i>');
             });
 
-            // ── Section label + empty state ─────
+            // ── Section label + empty state ─────────────────────────
             var isTmdb = getCookie('currentEngine') === 'tmdb';
             if (isTmdb) {
                 $('#sectionLabel').text('Trending this week');
@@ -114,7 +140,6 @@
             }
 
             renderRecent();
-
 
             // ── Search: autofocus + clear button ───────────────────
             $('#searchInput').wrap('<div id="searchWrapper"></div>');
@@ -163,7 +188,7 @@
                 mutations.forEach(function (m) {
                     if (m.target.style.display === 'block') {
                         $('html, body').animate(
-                            { scrollTop: $('#iframeContainer').offset().top - 16 },
+                            { scrollTop: $('#iframeContainer').offset().top - 72 },
                             280
                         );
                         setTimeout(function () {
@@ -204,7 +229,7 @@
             $(document).on('click', '#closeButton', function () {
                 setTimeout(function () {
                     $('html, body').animate(
-                        { scrollTop: $('#output').offset().top - 16 },
+                        { scrollTop: $('#output').offset().top - 72 },
                         280
                     );
                 }, 50);
@@ -249,7 +274,7 @@
                 }
             });
 
-            // ── Episode guide button (show guide for currently open media) ─
+            // ── Episode guide button ───────────────────────────────
             $('#episodeGuideBtn').on('click', function () {
                 var isTmdb = getCookie('currentEngine') === 'tmdb';
                 var state;
@@ -264,7 +289,7 @@
 
         });
 
-        // ── Global helpers (shared across engines) ─────────────────
+        // ── Global helpers ─────────────────────────────────────────
 
         function updateStepControlsFromState() {
             var sv = document.getElementById('seasonValue');
