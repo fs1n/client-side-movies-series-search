@@ -1,0 +1,5 @@
+beta-csmss.craeckor.ch {
+    tls internal
+    root * /Users/fs1n/Documents/GitHub/client-side-movies-series-search-NEW
+    file_server
+}
