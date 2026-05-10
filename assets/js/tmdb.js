@@ -238,7 +238,7 @@ if (getCookie('currentEngine') === 'tmdb') {
             } else if (currentHost === 'autoembed') {
                 src = `https://player.autoembed.cc/embed/tv/${currentTmdbId}/${currentSeason}/${currentEpisode}`;
             } else if (currentHost === 'superembed') {
-                const vipCheckUrl = `https://cors.craeckor.ch/https://multiembed.mov/directstream.php?video_id=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}&check=1`;
+                const vipCheckUrl = `https://api-csmss.craeckor.ch/https://multiembed.mov/directstream.php?video_id=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}&check=1`;
                 const vipAvailable = await checkVipAvailability(vipCheckUrl);
                 if (vipAvailable) {
                     src = `https://multiembed.mov/directstream.php?video_id=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}`;
@@ -276,7 +276,7 @@ if (getCookie('currentEngine') === 'tmdb') {
             } else if (currentHost === 'autoembed') {
                 src = `https://player.autoembed.cc/embed/movie/${currentTmdbId}`;
             } else if (currentHost === 'superembed') {
-                const vipCheckUrl = `https://cors.craeckor.ch/https://multiembed.mov/directstream.php?video_id=${currentTmdbId}&check=1`;
+                const vipCheckUrl = `https://api-csmss.craeckor.ch/https://multiembed.mov/directstream.php?video_id=${currentTmdbId}&check=1`;
                 const vipAvailable = await checkVipAvailability(vipCheckUrl);
                 if (vipAvailable) {
                     src = `https://multiembed.mov/directstream.php?video_id=${currentTmdbId}`;
