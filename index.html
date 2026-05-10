@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie and Series Search</title>
+    <title>CSMSS - Movie and Series Search</title>
+    <meta name="description" content="Search and stream movies and TV series for free. Browse trending titles, use TMDB or IMDB as source, and pick from multiple streaming hosts.">
+    <meta name="keywords" content="movies, series, streaming, free, search, TMDB, IMDB, streaming hosts, trending movies, trending series, Free movies, Free series, Watch free online, Movie database, TV database">
+    <meta property="og:title" content="CSMSS - Movie and Series Search">
+    <meta property="og:description" content="Search and stream movies and TV series for free. Browse trending titles with multiple streaming host options.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/image/favicon.svg">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="CSMSS - Movie and Series Search">
+    <meta name="twitter:description" content="Search and stream movies and TV series for free.">
+    <meta name="robots" content="index, follow">
     <link rel="icon" type="image/svg+xml" href="assets/image/favicon.svg">
     <!-- Apply theme immediately to avoid flash on load / hard-reload -->
     <script>
@@ -42,7 +52,7 @@
 
             <!-- Player -->
             <div id="iframeContainer">
-                <iframe id="movieIframe" allowfullscreen></iframe>
+                <iframe id="movieIframe" allowfullscreen tabindex="0"></iframe>
                 <button id="playerCloseOverlay" onclick="closeIframe()" title="Close (Esc)">✕</button>
                 <div id="buttonContainer">
                     <div id="leftControls">
@@ -106,6 +116,8 @@
             <div id="episodeGrid"></div>
         </div>
     </div>
+
+    <div id="focusToast"></div>
 
     <script src="assets/js/imdb.js"></script>
     <script src="assets/js/tmdb.js"></script>
@@ -185,6 +197,10 @@
                 if (e.key === 'Enter' && $(document.activeElement).is('#searchInput')) {
                     $('.preview').first().trigger('click');
                 }
+                if (e.key === 'p' && $('#iframeContainer').css('display') !== 'none') {
+                    document.getElementById('movieIframe').focus();
+                    showFocusToast('Player focused — F: fullscreen, Esc: close page controls');
+                }
             });
 
             // ── Scroll to player on open ───────────────────────────
@@ -195,6 +211,7 @@
                             { scrollTop: $('#iframeContainer').offset().top - 72 },
                             280
                         );
+                        setTimeout(function () { document.getElementById('movieIframe').focus(); }, 300);
                         setTimeout(function () {
                             var isT = getCookie('currentEngine') === 'tmdb';
                             var st = isT && window.getTmdbSeriesState ? window.getTmdbSeriesState()
@@ -223,6 +240,12 @@
                     }
                 });
             }).observe(document.getElementById('output'), { childList: true });
+
+            // ── Re-focus iframe on player area click ──────────────────
+            $(document).on('click', '#iframeContainer', function (e) {
+                if ($(e.target).closest('#playerCloseOverlay, #buttonContainer').length) return;
+                document.getElementById('movieIframe').focus();
+            });
 
             // ── Fullscreen label sync ──────────────────────────────
             $(document).on('fullscreenchange webkitfullscreenchange mozfullscreenchange', function () {
@@ -305,6 +328,15 @@
             if (st && ev) ev.value = st.currentEpisode;
         }
 
+        var focusToastTimer = null;
+        function showFocusToast(msg) {
+            var t = document.getElementById('focusToast');
+            t.textContent = msg || 'Player focused — F: fullscreen, Esc: close page controls';
+            t.classList.add('visible');
+            clearTimeout(focusToastTimer);
+            focusToastTimer = setTimeout(function () { t.classList.remove('visible'); }, 2200);
+        }
+
         function closeEpisodeGuide() {
             $('#episodeGuideOverlay').removeClass('open');
             document.body.style.overflow = '';
@@ -319,6 +351,33 @@
             var nearBottom = $(document).height() - $(window).height() - $(window).scrollTop() < 300;
             if (nearBottom) window.loadMoreResults();
         }
+
+        // ── Session restore ────────────────────────────────
+        (function () {
+            var engine = getCookie('currentEngine') || 'imdb';
+            var savedSearch = sessionStorage.getItem('csmss_search');
+            if (savedSearch) $('#searchInput').val(savedSearch).trigger('input');
+            var savedPlayer = sessionStorage.getItem('csmss_player');
+            if (savedPlayer) {
+                try {
+                    var p = JSON.parse(savedPlayer);
+                    if (p.engine === engine) {
+                        setTimeout(function () {
+                            if (p.engine === 'tmdb' && typeof window.openTmdbIframe === 'function') {
+                                window.openTmdbIframe(p.mediaId, p.mediaType, p.title);
+                                if (p.isSeries && typeof window.setTmdbSeasonEpisode === 'function')
+                                    window.setTmdbSeasonEpisode(p.season, p.episode);
+                            } else if (p.engine === 'imdb' && typeof window.openImdbIframe === 'function') {
+                                window.openImdbIframe(p.mediaId, p.qid, p.title);
+                                if (p.isSeries && typeof window.setImdbSeasonEpisode === 'function')
+                                    window.setImdbSeasonEpisode(p.season, p.episode);
+                            }
+                        }, 100);
+                    }
+                } catch (e) {}
+            }
+        })();
+
     </script>
 </body>
 </html>

@@ -976,6 +976,32 @@ footer a:hover img { opacity: .9; }
     }
 }
 
+/* === Iframe focus + toast === */
+#movieIframe:focus { outline: none; }
+
+#focusToast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: rgba(0, 0, 0, 0.78);
+    color: #fff;
+    font-size: 0.82em;
+    padding: 8px 18px;
+    border-radius: 20px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.22s, transform 0.22s;
+    z-index: 200;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+}
+
+#focusToast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
 /* === Reduced motion === */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {

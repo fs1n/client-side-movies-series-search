@@ -25,6 +25,7 @@ if (getCookie('currentEngine') === 'imdb') {
             document.getElementById('output').innerHTML = '';
             return;
         }
+        sessionStorage.setItem('csmss_search', input.trim());
         const url = `https://api-csmss.craeckor.ch/https://v3.sg.media-imdb.com/suggestion/x/${input}.json?includeVideos=1`;
         try {
             const response = await fetch(url);
@@ -96,6 +97,10 @@ if (getCookie('currentEngine') === 'imdb') {
         currentSeason = parseInt(getCookie(`${currentImdbId}_season`), 10) || 1;
         currentEpisode = parseInt(getCookie(`${currentImdbId}_episode`), 10) || 1;
         currentTitle = title;
+        sessionStorage.setItem('csmss_player', JSON.stringify({
+            engine: 'imdb', mediaId: imdbId, qid: qid,
+            title: title, isSeries: isSeries, season: currentSeason, episode: currentEpisode
+        }));
         document.getElementById('iframeContainer').style.display = 'block';
         updateIframe();
     }
@@ -191,6 +196,7 @@ if (getCookie('currentEngine') === 'imdb') {
         const movieIframe = document.getElementById('movieIframe');
         movieIframe.src = '';
         iframeContainer.style.display = 'none';
+        sessionStorage.removeItem('csmss_player');
     }
 
     function toggleFullscreen() {

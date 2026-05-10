@@ -89,6 +89,7 @@ if (getCookie('currentEngine') === 'tmdb') {
             return;
         }
         activeQuery = input.trim();
+        sessionStorage.setItem('csmss_search', input.trim());
         page = page || 1;
         const movieUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/movie?query=${input}&include_adult=true&language=en-US&page=${page}`;
         const tvUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/tv?query=${input}&include_adult=true&language=en-US&page=${page}`;
@@ -212,6 +213,10 @@ if (getCookie('currentEngine') === 'tmdb') {
         currentSeason = parseInt(getCookie(`${currentTmdbId}_season`), 10) || 1;
         currentEpisode = parseInt(getCookie(`${currentTmdbId}_episode`), 10) || 1;
         currentTitle = title;
+        sessionStorage.setItem('csmss_player', JSON.stringify({
+            engine: 'tmdb', mediaId: tmdbId, mediaType: mediaType,
+            title: title, isSeries: isSeries, season: currentSeason, episode: currentEpisode
+        }));
         maxSeasons = null;
         maxEpisodes = null;
         if (isSeries) {
@@ -238,12 +243,12 @@ if (getCookie('currentEngine') === 'tmdb') {
             } else if (currentHost === 'autoembed') {
                 src = `https://player.autoembed.cc/embed/tv/${currentTmdbId}/${currentSeason}/${currentEpisode}`;
             } else if (currentHost === 'superembed') {
-                const vipCheckUrl = `https://api-csmss.craeckor.ch/https://multiembed.mov/directstream.php?video_id=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}&check=1`;
+                const vipCheckUrl = `https://api-csmss.craeckor.ch/https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}&check=1`;
                 const vipAvailable = await checkVipAvailability(vipCheckUrl);
                 if (vipAvailable) {
-                    src = `https://multiembed.mov/directstream.php?video_id=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}`;
+                    src = `https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}`;
                 } else {
-                    src = `https://multiembed.mov/?video_id=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}`;
+                    src = `https://multiembed.mov/?tmdb=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}`;
                 }
             } else if (currentHost === '2embed') {
                 src = `https://www.2embed.cc/embedtv/${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}`;
@@ -276,12 +281,12 @@ if (getCookie('currentEngine') === 'tmdb') {
             } else if (currentHost === 'autoembed') {
                 src = `https://player.autoembed.cc/embed/movie/${currentTmdbId}`;
             } else if (currentHost === 'superembed') {
-                const vipCheckUrl = `https://api-csmss.craeckor.ch/https://multiembed.mov/directstream.php?video_id=${currentTmdbId}&check=1`;
+                const vipCheckUrl = `https://api-csmss.craeckor.ch/https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}&check=1`;
                 const vipAvailable = await checkVipAvailability(vipCheckUrl);
                 if (vipAvailable) {
-                    src = `https://multiembed.mov/directstream.php?video_id=${currentTmdbId}`;
+                    src = `https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}`;
                 } else {
-                    src = `https://multiembed.mov/?video_id=${currentTmdbId}`;
+                    src = `https://multiembed.mov/?tmdb=${currentTmdbId}`;
                 }
             } else if (currentHost === '2embed') {
                 src = `https://www.2embed.cc/embed/${currentTmdbId}`;
@@ -327,6 +332,7 @@ if (getCookie('currentEngine') === 'tmdb') {
         const movieIframe = document.getElementById('movieIframe');
         movieIframe.src = '';
         iframeContainer.style.display = 'none';
+        sessionStorage.removeItem('csmss_player');
     }
 
     function toggleFullscreen() {
