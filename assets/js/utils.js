@@ -281,14 +281,12 @@ function renderRecent() {
         img.alt = item.title;
         var h3 = document.createElement('h3');
         h3.textContent = item.title;
-        var descP = document.createElement('p');
         var yearP = document.createElement('p');
         yearP.textContent = item.year || '';
         var typeP = document.createElement('p');
         typeP.textContent = item.type === 'tv' ? 'TV Series' : 'Movie';
         card.appendChild(img);
         card.appendChild(h3);
-        card.appendChild(descP);
         card.appendChild(yearP);
         card.appendChild(typeP);
         section.appendChild(card);
