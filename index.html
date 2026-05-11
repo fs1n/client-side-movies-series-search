@@ -176,23 +176,29 @@
 
             $('#clearSearch').on('click', function () {
                 sessionStorage.removeItem('csmss_search');
-                $('#searchInput').val('').focus().trigger('input');
+                if (typeof window.cancelTmdbDebounce === 'function') window.cancelTmdbDebounce();
+                $('#searchInput').val('').focus();
+                $('#clearSearch').hide();
                 if (isTmdb) {
+                    $('#sectionLabel').text('Trending this week');
                     loadTrending();
                 } else {
+                    $('#sectionLabel').text('');
                     $('#output').empty();
                 }
             });
 
             $('#headerBrand').on('click', function () {
                 sessionStorage.removeItem('csmss_search');
-                $('#searchInput').val('').trigger('input');
+                if (typeof window.cancelTmdbDebounce === 'function') window.cancelTmdbDebounce();
+                $('#searchInput').val('');
                 $('#clearSearch').hide();
                 if (isTmdb) {
+                    $('#sectionLabel').text('Trending this week');
                     loadTrending();
                 } else {
-                    $('#output').empty();
                     $('#sectionLabel').text('');
+                    $('#output').empty();
                 }
             });
 

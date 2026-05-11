@@ -442,6 +442,7 @@ if (getCookie('currentEngine') === 'tmdb') {
     window.hasActiveSearch = function() { return !!activeQuery; };
 
     window.fetchTmdbData = fetchData;
+    window.cancelTmdbDebounce = function () { clearTimeout(debounceTimeout); };
 
     if (!sessionStorage.getItem('csmss_search')) {
         loadTrending();
