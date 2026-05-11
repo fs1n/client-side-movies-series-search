@@ -146,7 +146,7 @@ function openEpisodeGuide(mediaId, title, activeSeason) {
             img.className = 'epThumb';
             img.src = ep.still_path
                 ? 'https://image.tmdb.org/t/p/w300' + ep.still_path
-                : '/assets/image/unavailed.png';
+                : 'assets/image/unavailed.png';
             img.alt = ep.name || 'Episode';
 
             const body = document.createElement('div');
