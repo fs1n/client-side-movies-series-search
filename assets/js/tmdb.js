@@ -206,10 +206,6 @@ if (getCookie('currentEngine') === 'tmdb') {
     }
 
     function openIframe(tmdbId, mediaType, title) {
-        const activeImg = document.querySelector('.preview.active img');
-        const activeYear = document.querySelector('.preview.active p:nth-of-type(2)');
-        const poster = activeImg ? activeImg.src : 'assets/image/unavailed.png';
-        const year = activeYear ? activeYear.textContent : '';
         currentTmdbId = tmdbId;
         isSeries = mediaType === 'tv';
         currentSeason = parseInt(getCookie(`${currentTmdbId}_season`), 10) || 1;
