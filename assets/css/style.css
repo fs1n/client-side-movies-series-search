@@ -105,6 +105,7 @@ header {
     text-transform: uppercase;
     white-space: nowrap;
     user-select: none;
+    cursor: pointer;
 }
 
 #headerBrand i {

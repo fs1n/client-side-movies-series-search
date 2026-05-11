@@ -175,11 +175,24 @@
             });
 
             $('#clearSearch').on('click', function () {
+                sessionStorage.removeItem('csmss_search');
                 $('#searchInput').val('').focus().trigger('input');
                 if (isTmdb) {
                     loadTrending();
                 } else {
                     $('#output').empty();
+                }
+            });
+
+            $('#headerBrand').on('click', function () {
+                sessionStorage.removeItem('csmss_search');
+                $('#searchInput').val('').trigger('input');
+                $('#clearSearch').hide();
+                if (isTmdb) {
+                    loadTrending();
+                } else {
+                    $('#output').empty();
+                    $('#sectionLabel').text('');
                 }
             });
 
