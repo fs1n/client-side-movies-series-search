@@ -91,8 +91,9 @@ if (getCookie('currentEngine') === 'tmdb') {
         activeQuery = input.trim();
         sessionStorage.setItem('csmss_search', input.trim());
         page = page || 1;
-        const movieUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/movie?query=${input}&include_adult=true&language=en-US&page=${page}`;
-        const tvUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/tv?query=${input}&include_adult=true&language=en-US&page=${page}`;
+        const encodedInput = encodeURIComponent(input.trim());
+        const movieUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/movie?query=${encodedInput}&include_adult=true&language=en-US&page=${page}`;
+        const tvUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/tv?query=${encodedInput}&include_adult=true&language=en-US&page=${page}`;
 
         try {
             const [movieResponse, tvResponse] = await Promise.all([fetch(movieUrl), fetch(tvUrl)]);
