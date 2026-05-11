@@ -210,8 +210,12 @@
 
             // ── Keyboard shortcuts ─────────────────────────────────
             $(document).on('keydown', function (e) {
-                if (e.key === 'Escape' && $('#iframeContainer').css('display') !== 'none') {
-                    closeIframe();
+                if (e.key === 'Escape') {
+                    if ($('#episodeGuideOverlay').hasClass('open')) {
+                        closeEpisodeGuide();
+                    } else if ($('#iframeContainer').css('display') !== 'none') {
+                        closeIframe();
+                    }
                 }
                 if (e.key === 'Enter' && $(document.activeElement).is('#searchInput')) {
                     $('.preview').first().trigger('click');
@@ -284,12 +288,6 @@
             // ── Episode guide overlay ──────────────────────────────
             $(document).on('click', '#episodeGuideClose, #episodeGuideOverlay', function (e) {
                 if (e.target === this) closeEpisodeGuide();
-            });
-
-            $(document).on('keydown', function (e) {
-                if (e.key === 'Escape' && $('#episodeGuideOverlay').hasClass('open')) {
-                    closeEpisodeGuide();
-                }
             });
 
             // ── Infinite scroll / load more ───────────────────────
