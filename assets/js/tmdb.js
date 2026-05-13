@@ -383,6 +383,7 @@ if (getCookie('currentEngine') === 'tmdb') {
             const res = await fetch(url);
             if (!res.ok) return;
             const data = await res.json();
+            data.results = data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
             data.results.forEach(item => {
                 if (!item.media_type) item.media_type = item.title ? 'movie' : 'tv';
             });
@@ -435,6 +436,7 @@ if (getCookie('currentEngine') === 'tmdb') {
 
     window.loadMoreResults = loadMore;
     window.openTmdbIframe = openIframe;
+    window.loadTrending = loadTrending;
 
     window.hasActiveSearch = function() { return !!activeQuery; };
 

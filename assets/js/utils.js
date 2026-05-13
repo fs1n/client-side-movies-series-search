@@ -68,6 +68,13 @@ function openEpisodeGuide(mediaId, title, activeSeason) {
             })
             .then(episodes => {
                 renderEpisodes(episodes, currentSeason, true);
+            })
+            .catch(err => {
+                while (grid.firstChild) grid.removeChild(grid.firstChild);
+                const msg = document.createElement('p');
+                msg.className = 'empty-state';
+                msg.textContent = 'Failed to load episodes. Try again.';
+                grid.appendChild(msg);
             });
     } else {
         seasonsMeta = Array.from({ length: 10 }, (_, i) => ({ air_date: null, overview: '' }));
@@ -115,7 +122,7 @@ function openEpisodeGuide(mediaId, title, activeSeason) {
                 .then(r => r.json())
                 .then(data => {
                     const match = (data.d || []).find(item => item.id === id);
-                    if (match && match.t === season) {
+                    if (match) {
                         return fetch(`https://api-csmss.craeckor.ch/https://v3.sg.media-imdb.com/suggestion/x/${encodeURIComponent(title + ' season ' + season)}.json`)
                             .then(r => r.json())
                             .then(d => (d.d || []).filter(item => item.id.startsWith('tt')).map((item, idx) => ({
@@ -126,7 +133,8 @@ function openEpisodeGuide(mediaId, title, activeSeason) {
                             })));
                     }
                     return [];
-                });
+                })
+                .catch(() => []);
         }
     }
 

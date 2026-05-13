@@ -34,7 +34,7 @@
     <!-- ── Sticky header ───────────────────────────── -->
     <header>
         <div id="headerInner">
-            <div id="headerBrand">
+            <div id="headerBrand" role="button" tabindex="0" aria-label="Clear search and go to trending">
                 <i class="fa-solid fa-film" aria-hidden="true"></i>
                 <span>CSMSS</span>
             </div>
@@ -98,10 +98,10 @@
         </main>
 
         <footer>
-            <a href="https://github.com/craeckor/client-side-movies-series-search/tree/beta" target="_blank" title="View on GitHub">
+            <a href="https://github.com/craeckor/client-side-movies-series-search/tree/beta" target="_blank" rel="noopener noreferrer" title="View on GitHub">
                 <img src="assets/image/github-mark-white.svg" alt="GitHub" width="22" height="22">
             </a>
-            <p>Issues? Try the official version at <a href="https://csmss.craeckor.ch/" target="_blank">csmss.craeckor.ch</a></p>
+            <p>Issues? Try the official version at <a href="https://csmss.craeckor.ch/" target="_blank" rel="noopener noreferrer">csmss.craeckor.ch</a></p>
         </footer>
     </div>
 
@@ -199,6 +199,11 @@
                 } else {
                     $('#sectionLabel').text('');
                     $('#output').empty();
+                }
+            }).on('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    $(this).trigger('click');
                 }
             });
 

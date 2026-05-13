@@ -26,7 +26,8 @@ if (getCookie('currentEngine') === 'imdb') {
             return;
         }
         sessionStorage.setItem('csmss_search', input.trim());
-        const url = `https://api-csmss.craeckor.ch/https://v3.sg.media-imdb.com/suggestion/x/${input}.json?includeVideos=1`;
+        const encodedInput = encodeURIComponent(input.trim());
+        const url = `https://api-csmss.craeckor.ch/https://v3.sg.media-imdb.com/suggestion/x/${encodedInput}.json?includeVideos=1`;
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -87,11 +88,6 @@ if (getCookie('currentEngine') === 'imdb') {
     }
 
     function openIframe(imdbId, qid, title) {
-        const activeImg = document.querySelector('.preview.active img');
-        const activeYear = document.querySelector('.preview.active p:nth-of-type(2)');
-        const poster = activeImg ? activeImg.src : 'assets/image/unavailed.png';
-        const year = activeYear ? activeYear.textContent : '';
-        const type = (qid === 'movie' || qid === 'tvMovie' || qid === 'short') ? 'movie' : 'tv';
         currentImdbId = imdbId;
         isSeries = qid === 'tvSeries' || qid === 'tvMiniSeries';
         currentSeason = parseInt(getCookie(`${currentImdbId}_season`), 10) || 1;
