@@ -1,5 +1,6 @@
-.claude/
-claude.md
-caddy
-AGENTS.md
-.DS_Store
+.env
+node_modules
+.git
+.vscode
+db
+proxy/csmss-proxy

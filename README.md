@@ -1,11 +1,71 @@
 # Introduction
 
-This simple website is kind of a PoC (Proof of Concept) for showing the possibility with a (almost*) client-side streaming-website. It uses the "Search IMDb"-API from IMDb. These results are the same if you go to IMDb and search something in the search-box without hitting enter or clicking the search-icon. This API doesn't require any kind of authentication and also doesn't enforce stuff like CORS. I could do more stuff like "Ecact matches" but this would require a server-side API and this isn't the goal here. That's why you will likely don't get every result if you don't search a specific movie / series or just use a keyword of the movie / series. But the fact that all this (almost) works client-side is a fully win.
+This simple website is a proof-of-concept for an (almost) client-side streaming search. It uses the IMDb suggestion API and the TMDB search API. Some endpoints require CORS headers that the browser cannot provide itself, so a lightweight CORS proxy is included for self-hosting.
 
-# Setup
-1. Clone this repo into your ```www``` folder with ```git clone https://github.com/craeckor/client-side-movies-series-search.git```
-2. Start your webserver
-3. Access your webserver in the browser.
+# Quick start
+
+## Self-host with Docker Compose (recommended)
+
+```bash
+# 1. Copy the example environment file and add your TMDB API key
+cp .env.example .env
+# Edit .env and set TMDB_API_KEY=your_key_here
+
+# 2. Start the stack
+docker compose up -d
+
+# 3. Open http://localhost:3000
+```
+
+The compose stack starts:
+- `csmss-proxy` — Go CORS proxy on the internal network
+- `csmss-web` — Nginx serving the static frontend
+
+The frontend will automatically use the same-origin proxy at `/cors/`.
+
+## Single-image self-host
+
+```bash
+docker build -t csmss .
+docker run -d -p 3000:80 -e TMDB_API_KEY=your_key_here csmss
+```
+
+## Manual / existing web server
+
+If you already have a web server, clone the repo and point it at the project root. Then run the proxy separately:
+
+```bash
+cd proxy
+make build
+TMDB_API_KEY=your_key_here ./csmss-proxy
+```
+
+Set the proxy URL in the browser console or localStorage if it is not served from the same origin:
+```javascript
+localStorage.setItem('csmss_proxy_url', 'https://your-proxy.example.com/cors/');
+localStorage.setItem('csmss_tmdb_key', 'your_key_here');
+```
+
+# TMDB API key
+
+TMDB requires an API key. You can get one for free at https://www.themoviedb.org/settings/api.
+The key can be provided in three ways:
+1. Set `TMDB_API_KEY` in the proxy environment (proxy injects it into TMDB requests).
+2. Set `csmss_tmdb_key` in browser `localStorage`.
+3. Self-host the proxy and let it inject the key automatically.
 
 # CORS
-CORS is something which you cannot really achieve client-side and that's why I'm forced to use a CORS-bypasser two times. This problem is with multiembed.mov where the VIP-stream-check requires CORS for some reason. The stream itself doesn't. For this I use cors.craeckor.ch. The second problem is the IMDB-API. I'm also forced to use CORS-bypasser there.
+
+Historically this project relied on public CORS Anywhere instances. Those are unreliable and now require `Origin` / `X-Requested-With` headers. The included Go proxy is lightweight, self-hostable, and does not impose those restrictions.
+
+# Development
+
+Open the project root with any static file server, e.g.:
+
+```bash
+python3 -m http.server 8080
+# or
+npx serve .
+```
+
+When served via `file://`, the frontend falls back to the public proxy URL. For full functionality, serve it over HTTP and run the local proxy.

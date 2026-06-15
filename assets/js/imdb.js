@@ -27,7 +27,7 @@ if (getCookie('currentEngine') === 'imdb') {
         }
         sessionStorage.setItem('csmss_search', input.trim());
         const encodedInput = encodeURIComponent(input.trim());
-        const url = `https://api-csmss.craeckor.ch/https://v3.sg.media-imdb.com/suggestion/x/${encodedInput}.json?includeVideos=1`;
+        const url = buildProxyUrl(`https://v3.sg.media-imdb.com/suggestion/x/${encodedInput}.json?includeVideos=1`);
         try {
             const response = await fetch(url);
             if (!response.ok) {

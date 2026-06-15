@@ -92,8 +92,8 @@ if (getCookie('currentEngine') === 'tmdb') {
         sessionStorage.setItem('csmss_search', input.trim());
         page = page || 1;
         const encodedInput = encodeURIComponent(input.trim());
-        const movieUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/movie?query=${encodedInput}&include_adult=true&language=en-US&page=${page}`;
-        const tvUrl = `https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/search/tv?query=${encodedInput}&include_adult=true&language=en-US&page=${page}`;
+        const movieUrl = buildProxyUrl(appendTmdbApiKey(`https://api.themoviedb.org/3/search/movie?query=${encodedInput}&include_adult=true&language=en-US&page=${page}`));
+        const tvUrl = buildProxyUrl(appendTmdbApiKey(`https://api.themoviedb.org/3/search/tv?query=${encodedInput}&include_adult=true&language=en-US&page=${page}`));
 
         try {
             const [movieResponse, tvResponse] = await Promise.all([fetch(movieUrl), fetch(tvUrl)]);
@@ -218,11 +218,11 @@ if (getCookie('currentEngine') === 'tmdb') {
         maxSeasons = null;
         maxEpisodes = null;
         if (isSeries) {
-            fetch(`https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/tv/${currentTmdbId}?language=en-US`)
+            fetch(buildProxyUrl(appendTmdbApiKey(`https://api.themoviedb.org/3/tv/${currentTmdbId}?language=en-US`)))
                 .then(r => r.json())
                 .then(d => { maxSeasons = d.number_of_seasons || null; })
                 .catch(() => {});
-            fetch(`https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)
+            fetch(buildProxyUrl(appendTmdbApiKey(`https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)))
                 .then(r => r.json())
                 .then(d => { maxEpisodes = (d.episodes && d.episodes.length) || null; })
                 .catch(() => {});
@@ -241,7 +241,7 @@ if (getCookie('currentEngine') === 'tmdb') {
             } else if (currentHost === 'autoembed') {
                 src = `https://player.autoembed.cc/embed/tv/${currentTmdbId}/${currentSeason}/${currentEpisode}`;
             } else if (currentHost === 'superembed') {
-                const vipCheckUrl = `https://api-csmss.craeckor.ch/https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}&check=1`;
+                const vipCheckUrl = buildProxyUrl(`https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}&check=1`);
                 const vipAvailable = await checkVipAvailability(vipCheckUrl);
                 if (vipAvailable) {
                     src = `https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}&s=${currentSeason}&e=${currentEpisode}`;
@@ -279,7 +279,7 @@ if (getCookie('currentEngine') === 'tmdb') {
             } else if (currentHost === 'autoembed') {
                 src = `https://player.autoembed.cc/embed/movie/${currentTmdbId}`;
             } else if (currentHost === 'superembed') {
-                const vipCheckUrl = `https://api-csmss.craeckor.ch/https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}&check=1`;
+                const vipCheckUrl = buildProxyUrl(`https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}&check=1`);
                 const vipAvailable = await checkVipAvailability(vipCheckUrl);
                 if (vipAvailable) {
                     src = `https://multiembed.mov/directstream.php?tmdb=${currentTmdbId}`;
@@ -352,7 +352,7 @@ if (getCookie('currentEngine') === 'tmdb') {
         currentSeason = next;
         currentEpisode = 1;
         maxEpisodes = null;
-        fetch(`https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)
+        fetch(buildProxyUrl(appendTmdbApiKey(`https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)))
             .then(r => r.json())
             .then(d => { maxEpisodes = (d.episodes && d.episodes.length) || null; })
             .catch(() => {});
@@ -378,7 +378,7 @@ if (getCookie('currentEngine') === 'tmdb') {
     }
 
     async function loadTrending() {
-        const url = 'https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/trending/all/week?language=en-US';
+        const url = buildProxyUrl(appendTmdbApiKey('https://api.themoviedb.org/3/trending/all/week?language=en-US'));
         try {
             const res = await fetch(url);
             if (!res.ok) return;
@@ -411,7 +411,7 @@ if (getCookie('currentEngine') === 'tmdb') {
         currentSeason = s;
         currentEpisode = 1;
         maxEpisodes = null;
-        fetch(`https://api-csmss.craeckor.ch/https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)
+        fetch(buildProxyUrl(appendTmdbApiKey(`https://api.themoviedb.org/3/tv/${currentTmdbId}/season/${currentSeason}?language=en-US`)))
             .then(r => r.json())
             .then(d => { maxEpisodes = (d.episodes && d.episodes.length) || null; })
             .catch(() => {});
