@@ -1,0 +1,39 @@
+services:
+  proxy:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    container_name: csmss-proxy
+    environment:
+      - LISTEN_ADDR=:8080
+      - PATH_PREFIX=/cors/
+      - TMDB_API_KEY=${TMDB_API_KEY:-}
+      - LOG_REQUESTS=${LOG_REQUESTS:-true}
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  web:
+    image: nginx:alpine
+    container_name: csmss-web
+    ports:
+      - "${CSMSS_PORT:-3000}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./:/usr/share/nginx/html:ro
+    depends_on:
+      - proxy
+    restart: unless-stopped
+
+  # Optional single-image service (uncomment to use the standalone build)
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: csmss-app
+  #   ports:
+  #     - "${CSMSS_PORT:-3000}:80"
+  #   environment:
+  #     - TMDB_API_KEY=${TMDB_API_KEY:-}
+  #     - LOG_REQUESTS=${LOG_REQUESTS:-true}
+  #   restart: unless-stopped
